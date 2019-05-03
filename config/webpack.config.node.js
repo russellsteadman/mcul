@@ -17,7 +17,7 @@ module.exports = {
             exclude: /(node_modules|bower_components)/,
             use: {
                 loader: 'babel-loader',
-                options: require('./babel.config')
+                options: require('./babel.config')(true)
             }
         }
     ]
@@ -32,15 +32,20 @@ module.exports = {
   },
 
   externals: function(context, request, callback) {
-    if (/^(docile|url-parse)/.test(request)){
+    if (/^(rd-parse)/.test(request)){
       return callback(null, 'commonjs ' + request);
     }
     callback();
   },
 
   context: __dirname,
-  //target: 'node',
+  
+  target: 'node',
   mode: 'production',
+
+  optimization: {
+    minimize: false
+  },
 
   plugins: []
 };

@@ -9,7 +9,7 @@ const Y = function (gen) {
 const BasicGrammar = function (Token, All, Any, Plus, Optional, Node) {
     return Y(function (ThisGrammar) {
         Token(/\s+/g, 'ignore');
-        Token(/([\(\)\]\[\^\_])/g, 'verbatim');
+        Token(/([()\][^_])/g, 'verbatim');
 
         const Element = Token(/([A-Z][a-z]*)/g, 'element');
         const Count = Token(/((?<![\^+-])[0-9]+)/g, 'count');

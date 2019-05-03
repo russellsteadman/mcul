@@ -11,9 +11,7 @@ module.exports = {
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly"
     },
-    "parserOptions": {
-        "ecmaVersion": 2018
-    },
+    "parserOptions": require('./config/babel.config')(true),
     "rules": {
     }
 };

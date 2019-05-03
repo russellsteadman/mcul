@@ -18,7 +18,7 @@ module.exports = {
             exclude: /(node_modules|bower_components)/,
             use: {
                 loader: 'babel-loader',
-                options: require('./babel.config')
+                options: require('./babel.config')(false)
             }
         }
     ]
