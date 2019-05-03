@@ -7,29 +7,50 @@ const Y = function (gen) {
 };
 
 const BasicGrammar = function (Token, All, Any, Plus, Optional, Node) {
-
-    return (gen) => gen(function (ThisGrammar) {
+    return Y(function (ThisGrammar) {
         Token(/\s+/g, 'ignore');
-        Token(/(\(\)])/g, 'verbatim');
+        Token(/([\(\)\]\[\^\_])/g, 'verbatim');
 
         const Element = Token(/([A-Z][a-z]*)/g, 'element');
-        const Text = (
-        Token(/'([^']*)'/g, 'string'),
-        Token(/"([^"]*)"/g, 'string')
-        );
+        const Count = Token(/((?<![\^+-])[0-9]+)/g, 'count');
+        const Charge = Token(/([+-]?[0-9]+)/g, 'charge');
 
-        const ElementGroup = Node(All('(', ThisGrammar, ')'), ([body]) => ({body}));
+        const ChargeNode = Node(All('^', Charge), (charge) => ((Number(charge) && Number(charge) !== 0) ? {charge: Number(charge)} : {}));
+        const CountNode = Node(All(Optional('_'), Count), (count) => ((Number(count) && Number(count) !== 1) ? {count: Number(count)} : {}));
 
-        const FreeElement = Node(Element, ([symbol]) => ({ type: 'element', symbol }));
+        const Suffix = Node(Any(All(Optional(ChargeNode), Optional(CountNode)), All(Optional(CountNode), Optional(ChargeNode))), (stack) => (stack || []));
 
-        return Node(Plus(Any(Element, ElementGroup)), stack => stack);
+        const ParentheticalGroup = Node(All('(', ThisGrammar, ')', Suffix), ([subgroup, suffix]) => ({
+            type: 'subgroup',
+            subgroup,
+            ...suffix.reduce((a, b) => {
+                a = {...a, ...b};
+                return a;
+            }, {})
+        }));
+
+        const ComplexGroup = Node(All('[', ThisGrammar, ']', Suffix), ([subgroup, suffix]) => ({
+            type: 'complex',
+            subgroup,
+            ...suffix.reduce((a, b) => {
+                a = {...a, ...b};
+                return a;
+            }, {})
+        }));
+
+        const FreeElement = Node(All(Element, Suffix), ([symbol, suffix]) => ({
+            type: 'element',
+            symbol,
+            ...suffix.reduce((a, b) => {
+                a = {...a, ...b};
+                return a;
+            }, {})
+        }));
+
+        return Node(Plus(Any(FreeElement, ParentheticalGroup, ComplexGroup)), stack => stack);
     });
 };
 
-module.exports = (text) => {
-    let p = new Parser(BasicGrammar);
+const BasicParser = new Parser(BasicGrammar);
 
-    let ast = p.parse(text);
-
-    return JSON.stringify(ast, null, 2);
-};
+module.exports = (text) => BasicParser.parse(text);

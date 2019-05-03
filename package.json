@@ -27,18 +27,27 @@
     "@babel/core": "^7.4.4",
     "@babel/plugin-proposal-object-rest-spread": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
+    "babel-eslint": "^10.0.1",
     "babel-jest": "^24.7.1",
     "babel-loader": "^8.0.5",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "eslint": "^5.16.0",
     "jest": "^24.7.1",
+    "prettier": "^1.17.0",
     "webpack": "^4.30.0",
     "webpack-cli": "^3.3.1"
   },
   "scripts": {
     "build": "webpack --config config/webpack.config.js && webpack --config config/webpack.config.node.js",
-    "test": "jest -c config/jest.config.js"
+    "test": "jest",
+    "test-update": "jest --updateSnapshot",
+    "lint": "eslint src"
   },
   "dependencies": {
     "rd-parse": "^2.1.4"
+  },
+  "jest": {
+    "clearMocks": true,
+    "coverageDirectory": "coverage",
+    "testEnvironment": "node"
   }
 }
