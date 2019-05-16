@@ -1,10 +1,6 @@
 const Parser = require('rd-parse');
-
-const Y = function (gen) {
-    return (function(f) {return f(f)})(function(f) {
-      return gen(function() {return f(f).apply(null, arguments)});
-    });
-};
+const Y = require('./../shared/generator');
+const ConvertToAtomic = require('./../shared/convertToAtomic');
 
 const BasicGrammar = function (Token, All, Any, Plus, Optional, Node) {
     return Y(function (ThisGrammar) {
@@ -40,7 +36,7 @@ const BasicGrammar = function (Token, All, Any, Plus, Optional, Node) {
 
         const FreeElement = Node(All(Element, Suffix), ([symbol, suffix]) => ({
             type: 'element',
-            symbol,
+            element: ConvertToAtomic(symbol),
             ...suffix.reduce((a, b) => {
                 a = {...a, ...b};
                 return a;
