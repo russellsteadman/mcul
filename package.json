@@ -26,6 +26,7 @@
   "devDependencies": {
     "@babel/core": "^7.4.4",
     "@babel/plugin-proposal-object-rest-spread": "^7.4.4",
+    "@babel/plugin-proposal-private-methods": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
     "babel-eslint": "^10.0.1",
     "babel-jest": "^24.7.1",
@@ -50,5 +51,22 @@
     "clearMocks": true,
     "coverageDirectory": "coverage",
     "testEnvironment": "node"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "browsers": "node >= 6"
+          }
+        }
+      ]
+    ],
+    "plugins": [
+      "@babel/plugin-proposal-object-rest-spread",
+      "@babel/plugin-proposal-class-properties",
+      "@babel/plugin-proposal-private-methods"
+    ]
   }
 }
