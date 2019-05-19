@@ -2,13 +2,17 @@ const Basic = require('./parsers/basic');
 const Iupac = require('./parsers/iupac');
 const RecursiveCount = require('./shared/mol/recursiveCount');
 const ElementFraction = require('./shared/mol/elementFraction');
+const FindById = require('./shared/mol/findById');
+const Element = require('./Element');
+const Subgroup = require('./Subgroup');
 
 const SCHEMA_VERSION = '0.1.0';
 
 class Molecule {
     #formats = ['basic', 'iupac'];
     #state = {
-        members: []
+        members: [],
+        idIndex: 0
     };
     version = SCHEMA_VERSION;
     type = 'molecule';
@@ -26,16 +30,26 @@ class Molecule {
 
         /** Initialize state */
         this.#state = {
-            rawText,
-            format,
-            options: {
-                ...{},
-                ...options
+            ...this.#state,
+            ...{
+                rawText,
+                format,
+                options: {
+                    ...{},
+                    ...options
+                }
             }
         };
 
         if (fromText) this.parse();
     }
+
+    #createId = () => {
+        this.#state.idIndex += 1;
+        return this.#state.idIndex.toString(36);
+    };
+
+    findById = (id) => (FindById(id, this.#state.members));
 
     serialize = () => {
         let members = Array.prototype.slice.call(this.#state.members);
@@ -50,9 +64,22 @@ class Molecule {
             type: 'molecule',
             version: SCHEMA_VERSION,
             members,
+            idIndex: this.#state.idIndex,
             ...(this.#state.rawText ? {fromText: this.#state.rawText} : {})
         };
     }
+
+    createElement = (element, options) => (new Element(element, {
+        ...options,
+        parent: this,
+        id: this.#createId()
+    }));
+
+    createSubgroup = (constituents, options) => (new Subgroup(constituents, {
+        ...options,
+        parent: this,
+        id: this.#createId()
+    }));
 
     get members() {
         return Array.prototype.slice.call(this.#state.members);
@@ -73,11 +100,11 @@ class Molecule {
     parse = () => {
         let { rawText, format } = this.#state;
         if (format === this.#formats[0]) {
-            this.#state.members = Basic(rawText);
+            this.#state.members = Basic.call(this, rawText);
         } else if (format === this.#formats[1]) {
-            this.#state.members = Iupac(rawText);
+            this.#state.members = Iupac.call(this, rawText);
         } else if (typeof this.#state.options.parsers[format] === 'function') {
-            this.#state.members = this.#state.options.parsers[format](rawText);
+            this.#state.members = this.#state.options.parsers[format].call(this, rawText);
         } else {
             throw new Error(`Cannot parse type "${format}".`);
         }

@@ -1,41 +1,39 @@
 const Molecule = require('./Molecule');
-const Element = require('./Element');
-const Subgroup = require('./Subgroup');
 
 class Generator {
-    #parsers = {};
-    #defaultFormat = 'basic';
+    #state = {
+        parsers: {},
+        defaultFormat: 'basic'
+    }
 
     create = (options) => {
         return new Molecule({
             ...options,
-            parsers: this.#parsers
+            parsers: this.#state.parsers,
+            parent: this
         });
     };
     
     createFromText = (rawText, format, options) => {
-        if (!format) format = this.#defaultFormat;
+        if (!format) format = this.#state.defaultFormat;
         return new Molecule({
             ...options,
-            parsers: this.#parsers,
+            parsers: this.#state.parsers,
             rawText,
-            format
+            format,
+            parent: this
         });
     };
 
-    createElement = (element) => (new Element(element));
-
-    createSubgroup = (options, ...constituents) => (new Subgroup(constituents, options));
-
     setDefaultFormat = (format) => {
-        this.#defaultFormat = format;
+        this.#state.defaultFormat = format;
     };
     
     addParser = (parser, format) => {
         if (typeof parser !== 'function' && typeof format !== 'string') {
             throw new Error('Parser and format must be specified.');
         }
-        this.#parsers[format] = parser;
+        this.#state.parsers[format] = parser;
     };
 }
 

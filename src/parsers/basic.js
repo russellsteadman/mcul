@@ -1,10 +1,10 @@
 const Parser = require('rd-parse');
 const Y = require('./../shared/generator');
 const ConvertToAtomic = require('./../shared/convertToAtomic');
-const Element = require('./../Element');
-const Subgroup = require('./../Subgroup');
 
 const BasicGrammar = function (Token, All, Any, Plus, Optional, Node) {
+    const Molecule = this;
+
     return Y(function (ThisGrammar) {
         Token(/\s+/g, 'ignore');
         Token(/([()\][^_])/g, 'verbatim');
@@ -18,27 +18,36 @@ const BasicGrammar = function (Token, All, Any, Plus, Optional, Node) {
 
         const Suffix = Node(Any(All(Optional(ChargeNode), Optional(CountNode)), All(Optional(CountNode), Optional(ChargeNode))), (stack) => (stack || []));
 
-        const ParentheticalGroup = Node(All('(', ThisGrammar, ')', Suffix), ([subgroup, suffix]) => (new Subgroup(subgroup, suffix.reduce((a, b) => {
-            a = {...a, ...b};
-            return a;
-        }, {}))));
+        const ParentheticalGroup = Node(
+            All('(', ThisGrammar, ')', Suffix),
+            ([subgroup, suffix]) => (Molecule.createSubgroup(subgroup, suffix.reduce((a, b) => {
+                a = {...a, ...b};
+                return a;
+            }, {})))
+        );
 
-        const ComplexGroup = Node(All('[', ThisGrammar, ']', Suffix), ([subgroup, suffix]) => (new Subgroup(subgroup, suffix.reduce((a, b) => {
-            a = {...a, ...b};
-            return a;
-        }, {
-            type: 'complex'
-        }))));
+        const ComplexGroup = Node(
+            All('[', ThisGrammar, ']', Suffix),
+            ([subgroup, suffix]) => (Molecule.createSubgroup(subgroup, suffix.reduce((a, b) => {
+                a = {...a, ...b};
+                return a;
+            }, {
+                type: 'complex'
+            })))
+        );
 
-        const FreeElement = Node(All(ElementToken, Suffix), ([symbol, suffix]) => (new Element(ConvertToAtomic(symbol), suffix.reduce((a, b) => {
-            a = {...a, ...b};
-            return a;
-        }, {}))));
+        const FreeElement = Node(
+            All(ElementToken, Suffix),
+            ([symbol, suffix]) => (Molecule.createElement(ConvertToAtomic(symbol), suffix.reduce((a, b) => {
+                a = {...a, ...b};
+                return a;
+            }, {})))
+        );
 
         return Node(Plus(Any(FreeElement, ParentheticalGroup, ComplexGroup)), stack => stack);
     });
 };
 
-const BasicParser = new Parser(BasicGrammar);
-
-module.exports = (text) => BasicParser.parse(text);
+module.exports = function (text) {
+    return new Parser(BasicGrammar.bind(this)).parse(text);
+};

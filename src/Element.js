@@ -6,19 +6,22 @@ class Element {
     #state = {
         el: 1,
         count: 1,
-        charge: 0
+        charge: 0,
+        id: ''
     };
 
-    constructor(atomicNumber, {count, charge}) {
+    constructor(atomicNumber, {count, charge, id}) {
         this.#state.el = Number(atomicNumber);
         this.setCount(count);
         this.setCharge(charge);
+        this.#state.id = id;
     }
 
     serialize = () => {
         return {
             type: 'element',
             element: this.#state.el,
+            id: this.#state.id,
             ...(this.#state.count !== 1 ? {count: this.#state.count} : {}),
             ...(this.#state.charge !== 0 ? {charge: this.#state.charge} : {})
         };

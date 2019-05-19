@@ -1,26 +1,36 @@
+const FindById = require('./shared/mol/findById');
+
 class Subgroup {
     #state = {
         members: [],
         type: 'subgroup',
         count: 1,
-        charge: 0
+        charge: 0,
+        id: ''
     };
 
-    constructor(constituents, {type, count, charge}) {
+    constructor(members, {type, count, charge, id}) {
         this.setType(type);
         this.setCount(count);
         this.setCharge(charge);
+        this.#state.id = id;
 
-        for (let i in constituents) {
-            if (Array.isArray(constituents[i])) {
-                this.#state.members = this.#state.members.concat(constituents[i]);
+        for (let i in members) {
+            if (Array.isArray(members[i])) {
+                this.#state.members = this.#state.members.concat(members[i]);
             } else {
-                this.#state.members.push(constituents[i]);
+                this.#state.members.push(members[i]);
             }
         }
     }
 
-    serialize() {
+    get id() {
+        return this.#state.id;
+    }
+
+    findById = (id) => (FindById(id, this.#state.members));
+
+    serialize = () => {
         let members = Array.prototype.slice.call(this.#state.members);
 
         for (let i in members) {
@@ -32,10 +42,11 @@ class Subgroup {
         return {
             type: this.#state.type,
             members,
+            id: this.#state.id,
             ...(this.#state.count !== 1 ? {count: this.#state.count} : {}),
             ...(this.#state.charge !== 0 ? {charge: this.#state.charge} : {})
         };
-    }
+    };
 
     get type() {
         return this.#state.type;

@@ -5,8 +5,6 @@ test("Generator has correct types", () => {
   expect(typeof Molecule).toBe('object');
   expect(typeof Molecule.create).toBe('function');
   expect(typeof Molecule.createFromText).toBe('function');
-  expect(typeof Molecule.createElement).toBe('function');
-  expect(typeof Molecule.createSubgroup).toBe('function');
   expect(typeof Molecule.addParser).toBe('function');
   expect(typeof Molecule.parsers).toBe('undefined');
 });
