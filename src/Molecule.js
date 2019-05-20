@@ -11,7 +11,7 @@ const SCHEMA_VERSION = '0.1.0';
 class Molecule {
     #formats = ['basic', 'iupac'];
     #state = {
-        members: [],
+        children: [],
         idIndex: 0
     };
     version = SCHEMA_VERSION;
@@ -28,7 +28,6 @@ class Molecule {
             throw new Error(`Text to parse and format must be specified.`);
         }
 
-        /** Initialize state */
         this.#state = {
             ...this.#state,
             ...{
@@ -49,21 +48,24 @@ class Molecule {
         return this.#state.idIndex.toString(36);
     };
 
-    findById = (id) => (FindById(id, this.#state.members));
+    findById = (id) => {
+        if (id === false) return this;
+        return FindById(id, this.#state.children);
+    };
 
     serialize = () => {
-        let members = Array.prototype.slice.call(this.#state.members);
+        let children = Array.prototype.slice.call(this.#state.children);
 
-        for (let i in members) {
-            if (typeof members[i].serialize === 'function') {
-                members[i] = members[i].serialize();
+        for (let i in children) {
+            if (typeof children[i].serialize === 'function') {
+                children[i] = children[i].serialize();
             }
         }
 
         return {
             type: 'molecule',
             version: SCHEMA_VERSION,
-            members,
+            children,
             idIndex: this.#state.idIndex,
             ...(this.#state.rawText ? {fromText: this.#state.rawText} : {})
         };
@@ -71,44 +73,64 @@ class Molecule {
 
     createElement = (element, options) => (new Element(element, {
         ...options,
-        parent: this,
+        molecule: this,
         id: this.#createId()
     }));
 
     createSubgroup = (constituents, options) => (new Subgroup(constituents, {
         ...options,
-        parent: this,
+        molecule: this,
         id: this.#createId()
     }));
 
-    get members() {
-        return Array.prototype.slice.call(this.#state.members);
+    append = (item) => {
+        const types = ['element', 'subgroup', 'complex'];
+        if (!item || types.indexOf(item.type) === -1) throw new Error('Cannot append invalid item');
+        this.#state.children.push(item);
+    }
+
+    get children() {
+        return Array.prototype.slice.call(this.#state.children);
     }
 
     get mass() {
         let sum = 0;
-        for (let i in this.#state.members) {
-            sum += this.#state.members[i].mass;
+        for (let i in this.#state.children) {
+            sum += this.#state.children[i].mass;
         }
         return sum;
     }
 
-    getCounts = () => (RecursiveCount(this.#state.members));
-    getCount = (element) => (RecursiveCount(this.#state.members)[element] || 0);
-    getElementFraction = (element) => (ElementFraction(this.#state.members, element));
+    getCounts = () => (RecursiveCount(this.#state.children));
+    getCount = (element) => (RecursiveCount(this.#state.children)[element] || 0);
+    getElementFraction = (element) => (ElementFraction(this.#state.children, element));
 
     parse = () => {
         let { rawText, format } = this.#state;
         if (format === this.#formats[0]) {
-            this.#state.members = Basic.call(this, rawText);
+            this.#state.children = Basic.call(this, rawText);
         } else if (format === this.#formats[1]) {
-            this.#state.members = Iupac.call(this, rawText);
+            this.#state.children = Iupac.call(this, rawText);
         } else if (typeof this.#state.options.parsers[format] === 'function') {
-            this.#state.members = this.#state.options.parsers[format].call(this, rawText);
+            this.#state.children = this.#state.options.parsers[format].call(this, rawText);
         } else {
             throw new Error(`Cannot parse type "${format}".`);
         }
     };
+
+    get childIds() {
+        let ids = {};
+        for (let i in this.#state.children) {
+            ids[this.#state.children[i].id] = false;
+            if (this.#state.children[i].childIds) {
+                ids = {
+                    ...ids,
+                    ...this.#state.children[i].childIds
+                };
+            }
+        }
+        return ids;
+    }
 }
 
 module.exports = Molecule;

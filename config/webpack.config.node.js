@@ -10,6 +10,8 @@ module.exports = {
     libraryTarget: 'commonjs2'
   },
 
+  devtool: 'cheap-source-map',
+
   module: {
     rules: [
         {

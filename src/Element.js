@@ -7,14 +7,16 @@ class Element {
         el: 1,
         count: 1,
         charge: 0,
-        id: ''
+        id: '',
+        molecule: null
     };
 
-    constructor(atomicNumber, {count, charge, id}) {
+    constructor(atomicNumber, {count, charge, id, molecule}) {
         this.#state.el = Number(atomicNumber);
         this.setCount(count);
         this.setCharge(charge);
         this.#state.id = id;
+        this.#state.molecule = molecule;
     }
 
     serialize = () => {
@@ -62,6 +64,14 @@ class Element {
         if (isNaN(charge) || !Number.isInteger(charge)) return;
         this.#state.charge = charge;
     };
+
+    get parent() {
+        return this.#state.molecule.findById(this.#state.molecule.childIds[this.#state.id]);
+    }
+
+    get id() {
+        return this.#state.id;
+    }
 }
 
 module.exports = Element;

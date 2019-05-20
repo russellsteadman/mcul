@@ -11,6 +11,8 @@ module.exports = {
     libraryTarget: 'window'
   },
 
+  devtool: 'cheap-source-map',
+
   module: {
     rules: [
         {

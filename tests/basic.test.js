@@ -5,9 +5,7 @@ test("Hydrochloric acid", () => {
   expect(Molecule.createFromText("HCl", "basic").serialize())
     .toMatchInlineSnapshot(`
     Object {
-      "fromText": "HCl",
-      "idIndex": 2,
-      "members": Array [
+      "children": Array [
         Object {
           "element": 1,
           "id": "1",
@@ -19,6 +17,8 @@ test("Hydrochloric acid", () => {
           "type": "element",
         },
       ],
+      "fromText": "HCl",
+      "idIndex": 2,
       "type": "molecule",
       "version": "0.1.0",
     }
@@ -29,17 +29,14 @@ test("Ligand Complex", () => {
   expect(Molecule.createFromText("Al(NH)", "basic").serialize())
     .toMatchInlineSnapshot(`
     Object {
-      "fromText": "Al(NH)",
-      "idIndex": 4,
-      "members": Array [
+      "children": Array [
         Object {
           "element": 13,
           "id": "1",
           "type": "element",
         },
         Object {
-          "id": "4",
-          "members": Array [
+          "children": Array [
             Object {
               "element": 7,
               "id": "2",
@@ -51,9 +48,12 @@ test("Ligand Complex", () => {
               "type": "element",
             },
           ],
+          "id": "4",
           "type": "subgroup",
         },
       ],
+      "fromText": "Al(NH)",
+      "idIndex": 4,
       "type": "molecule",
       "version": "0.1.0",
     }
@@ -64,25 +64,21 @@ test("Layered Parentheses", () => {
   expect(Molecule.createFromText("Al(N(HCl))", "basic").serialize())
     .toMatchInlineSnapshot(`
     Object {
-      "fromText": "Al(N(HCl))",
-      "idIndex": 6,
-      "members": Array [
+      "children": Array [
         Object {
           "element": 13,
           "id": "1",
           "type": "element",
         },
         Object {
-          "id": "6",
-          "members": Array [
+          "children": Array [
             Object {
               "element": 7,
               "id": "2",
               "type": "element",
             },
             Object {
-              "id": "5",
-              "members": Array [
+              "children": Array [
                 Object {
                   "element": 1,
                   "id": "3",
@@ -94,12 +90,16 @@ test("Layered Parentheses", () => {
                   "type": "element",
                 },
               ],
+              "id": "5",
               "type": "subgroup",
             },
           ],
+          "id": "6",
           "type": "subgroup",
         },
       ],
+      "fromText": "Al(N(HCl))",
+      "idIndex": 6,
       "type": "molecule",
       "version": "0.1.0",
     }
@@ -110,9 +110,7 @@ test("Layered Parentheses With Atomic Counts", () => {
   expect(Molecule.createFromText("Al3(N2(HCl))", "basic").serialize())
     .toMatchInlineSnapshot(`
     Object {
-      "fromText": "Al3(N2(HCl))",
-      "idIndex": 6,
-      "members": Array [
+      "children": Array [
         Object {
           "count": 3,
           "element": 13,
@@ -120,8 +118,7 @@ test("Layered Parentheses With Atomic Counts", () => {
           "type": "element",
         },
         Object {
-          "id": "6",
-          "members": Array [
+          "children": Array [
             Object {
               "count": 2,
               "element": 7,
@@ -129,8 +126,7 @@ test("Layered Parentheses With Atomic Counts", () => {
               "type": "element",
             },
             Object {
-              "id": "5",
-              "members": Array [
+              "children": Array [
                 Object {
                   "element": 1,
                   "id": "3",
@@ -142,12 +138,16 @@ test("Layered Parentheses With Atomic Counts", () => {
                   "type": "element",
                 },
               ],
+              "id": "5",
               "type": "subgroup",
             },
           ],
+          "id": "6",
           "type": "subgroup",
         },
       ],
+      "fromText": "Al3(N2(HCl))",
+      "idIndex": 6,
       "type": "molecule",
       "version": "0.1.0",
     }
@@ -158,9 +158,7 @@ test("Layered Parentheses With Atomic and Group Counts", () => {
   expect(Molecule.createFromText("Al3(N2(HCl)4)5", "basic").serialize())
     .toMatchInlineSnapshot(`
     Object {
-      "fromText": "Al3(N2(HCl)4)5",
-      "idIndex": 6,
-      "members": Array [
+      "children": Array [
         Object {
           "count": 3,
           "element": 13,
@@ -168,9 +166,7 @@ test("Layered Parentheses With Atomic and Group Counts", () => {
           "type": "element",
         },
         Object {
-          "count": 5,
-          "id": "6",
-          "members": Array [
+          "children": Array [
             Object {
               "count": 2,
               "element": 7,
@@ -178,9 +174,7 @@ test("Layered Parentheses With Atomic and Group Counts", () => {
               "type": "element",
             },
             Object {
-              "count": 4,
-              "id": "5",
-              "members": Array [
+              "children": Array [
                 Object {
                   "element": 1,
                   "id": "3",
@@ -192,12 +186,18 @@ test("Layered Parentheses With Atomic and Group Counts", () => {
                   "type": "element",
                 },
               ],
+              "count": 4,
+              "id": "5",
               "type": "subgroup",
             },
           ],
+          "count": 5,
+          "id": "6",
           "type": "subgroup",
         },
       ],
+      "fromText": "Al3(N2(HCl)4)5",
+      "idIndex": 6,
       "type": "molecule",
       "version": "0.1.0",
     }
@@ -208,22 +208,16 @@ test("Advanced Ligand Complex Without Charges", () => {
   expect(Molecule.createFromText("[Cu(NH3)6]_3(H2O)12", "basic").serialize())
     .toMatchInlineSnapshot(`
     Object {
-      "fromText": "[Cu(NH3)6]_3(H2O)12",
-      "idIndex": 8,
-      "members": Array [
+      "children": Array [
         Object {
-          "count": 3,
-          "id": "5",
-          "members": Array [
+          "children": Array [
             Object {
               "element": 29,
               "id": "1",
               "type": "element",
             },
             Object {
-              "count": 6,
-              "id": "4",
-              "members": Array [
+              "children": Array [
                 Object {
                   "element": 7,
                   "id": "2",
@@ -236,15 +230,17 @@ test("Advanced Ligand Complex Without Charges", () => {
                   "type": "element",
                 },
               ],
+              "count": 6,
+              "id": "4",
               "type": "subgroup",
             },
           ],
+          "count": 3,
+          "id": "5",
           "type": "complex",
         },
         Object {
-          "count": 12,
-          "id": "8",
-          "members": Array [
+          "children": Array [
             Object {
               "count": 2,
               "element": 1,
@@ -257,9 +253,13 @@ test("Advanced Ligand Complex Without Charges", () => {
               "type": "element",
             },
           ],
+          "count": 12,
+          "id": "8",
           "type": "subgroup",
         },
       ],
+      "fromText": "[Cu(NH3)6]_3(H2O)12",
+      "idIndex": 8,
       "type": "molecule",
       "version": "0.1.0",
     }
@@ -271,23 +271,17 @@ test("Advanced Ligand Complex With Charges", () => {
     Molecule.createFromText("[Cu(NH3)6]^+6_3(H2O)^+5_12", "basic").serialize()
   ).toMatchInlineSnapshot(`
     Object {
-      "fromText": "[Cu(NH3)6]^+6_3(H2O)^+5_12",
-      "idIndex": 8,
-      "members": Array [
+      "children": Array [
         Object {
           "charge": 6,
-          "count": 3,
-          "id": "5",
-          "members": Array [
+          "children": Array [
             Object {
               "element": 29,
               "id": "1",
               "type": "element",
             },
             Object {
-              "count": 6,
-              "id": "4",
-              "members": Array [
+              "children": Array [
                 Object {
                   "element": 7,
                   "id": "2",
@@ -300,16 +294,18 @@ test("Advanced Ligand Complex With Charges", () => {
                   "type": "element",
                 },
               ],
+              "count": 6,
+              "id": "4",
               "type": "subgroup",
             },
           ],
+          "count": 3,
+          "id": "5",
           "type": "complex",
         },
         Object {
           "charge": 5,
-          "count": 12,
-          "id": "8",
-          "members": Array [
+          "children": Array [
             Object {
               "count": 2,
               "element": 1,
@@ -322,9 +318,13 @@ test("Advanced Ligand Complex With Charges", () => {
               "type": "element",
             },
           ],
+          "count": 12,
+          "id": "8",
           "type": "subgroup",
         },
       ],
+      "fromText": "[Cu(NH3)6]^+6_3(H2O)^+5_12",
+      "idIndex": 8,
       "type": "molecule",
       "version": "0.1.0",
     }
