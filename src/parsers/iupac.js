@@ -24,6 +24,9 @@ const IupacGrammar = function (Token, All, Any, Plus, Optional, Node) {
         /** ex. cyclo */
         const CyclicNode = Node(Token(/(cyclo)/g, 'cyclic'), () => ({cyclic: true}));
 
+        /** ex. acid */
+        const AcidNode = Node(Token(/(\sacid)/g, 'acid'), () => ({acid: true}));
+
         /** ex. 1 */
         const LocationNode = Node(Token(/([0-9]+)/g, 'location'), ([location]) => (location));
 
@@ -92,7 +95,9 @@ const IupacGrammar = function (Token, All, Any, Plus, Optional, Node) {
             // -ane, -ene, -yne
             BondCountNode,
             // -1,2-diol
-            Optional(Plus(PostFunctionalGroup))
+            Optional(Plus(PostFunctionalGroup)),
+            // acid
+            Optional(AcidNode)
         ), (groups) => {
             let chainProps = groups.reduce((a, b) => {
                 if (b.hasOwnProperty('location')) {
@@ -112,7 +117,6 @@ const IupacGrammar = function (Token, All, Any, Plus, Optional, Node) {
             let chainCount = chainProps.prefix || 1;
             let bondCount = chainProps.bondCount;
             let hydrogenCount = (chainCount * 2) + 2 - ((bondCount - 1) * locLength * 2) - groupCount;
-            // 2 2 0 3
 
             let chainChildren = chainProps.children.concat([
                 Molecule.createElement(6, {

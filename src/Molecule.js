@@ -67,8 +67,7 @@ class Molecule {
         };
     };
 
-    unserialize = (text) => {
-        let mol = JSON.parse(text);
+    unserialize = (mol) => {
         if (mol.version.split('.')[0] !== SCHEMA_VERSION.split('.')[0]) throw new Error('Incompatible version');
 
         this.#state.idIndex = mol.idIndex;
@@ -126,6 +125,10 @@ class Molecule {
         return Collection.getCounts.call(this.#state);
     }
 
+    get childIds() {
+        return Collection.getChildIds.call(this.#state);
+    }
+
     getElementFraction = Collection.getElementFraction.bind(this.#state);
     getMassFraction = Collection.getMassFraction.bind(this.#state);
 
@@ -141,10 +144,6 @@ class Molecule {
             throw new Error(`Cannot parse type "${format}".`);
         }
     };
-
-    get childIds() {
-        return Collection.getChildIds.call(this.#state);
-    }
 }
 
 module.exports = Molecule;

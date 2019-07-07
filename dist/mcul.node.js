@@ -82,17 +82,28 @@ module.exports =
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
 /***/ (function(module, exports) {
 
-module.exports = require("rd-parse");
+let Types = {
+  subgroup: ['subgroup', 'complex', 'chain', 'fngroup'],
+  element: ['element']
+};
+Types.all = Types.subgroup.concat(Types.element);
+module.exports = Types;
 
 /***/ }),
 /* 1 */
+/***/ (function(module, exports) {
+
+module.exports = require("rd-parse");
+
+/***/ }),
+/* 2 */
 /***/ (function(module, exports) {
 
 module.exports = function (gen) {
@@ -106,27 +117,42 @@ module.exports = function (gen) {
 };
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module) {
 
 module.exports = ["H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg","Al","Si","P","S","Cl","Ar","K","Ca","Sc","Ti","V","Cr","Mn","Fe","Co","Ni","Cu","Zn","Ga","Ge","As","Se","Br","Kr","Rb","Sr","Y","Zr","Nb","Mo","Tc","Ru","Rh","Pd","Ag","Cd","In","Sn","Sb","Te","I","Xe","Cs","Ba","La","Ce","Pr","Nd","Pm","Sm","Eu","Gd","Tb","Dy","Ho","Er","Tm","Yb","Lu","Hf","Ta","W","Re","Os","Ir","Pt","Au","Hg","Tl","Pb","Bi","Po","At","Rn","Fr","Ra","Ac","Th","Pa","U","Np","Pu","Am","Cm","Bk","Cf","Es","Fm","Md","No","Lr","Rf","Db","Sg","Bh","Hs","Mt"];
 
 /***/ }),
-/* 3 */
-/***/ (function(module, exports) {
+/* 4 */
+/***/ (function(module) {
 
-const RecursiveCount = parsed => {
+module.exports = [1.008,4.0026,7,9.012183,10.81,12.011,14.007,15.999,18.99840316,20.18,22.9897693,24.305,26.981538,28.085,30.973762,32.07,35.45,39.9,39.098,40.08,44.95591,47.87,50.941,51.996,54.93804,55.84,58.93319,58.693,63.55,65.4,69.72,72.63,74.92159,78.97,79.9,83.8,85.468,87.6,88.9058,91.22,92.9064,96,97.90721,101.1,102.9055,106.4,107.868,112.41,114.82,118.71,121.76,127.6,126.9045,131.29,132.905452,137.33,138.9055,140.12,140.9077,144.24,144.91276,150.4,151.96,157.2,158.92535,162.5,164.93033,167.26,168.93422,173.04,174.967,178.5,180.9479,183.8,186.21,190.2,192.22,195.08,196.96657,200.59,204.383,207,208.9804,208.98243,209.98715,222.01758,223.01973,226.02541,227.02775,232.038,231.0359,238.0289,237.04817,244.0642,243.06138,247.07035,247.07031,251.07959,252.083,257.09511,258.09843,259.101,262.11,267.122,268.126,271.134,274.144,277.152,278.156,281.165,282.169,285.177,286.183,289.191,290.196,293.205,294.211,294.214];
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+const Types = __webpack_require__(0);
+
+const AtomicToAMU = __webpack_require__(4);
+
+const getCounts = function getCounts() {
   let counts = {};
 
-  for (let i in parsed) {
-    if (parsed[i].type === 'element') {
-      counts[parsed[i].element] = isNaN(counts[parsed[i].element]) ? parsed[i].count || 1 : (parsed[i].count || 1) * counts[parsed[i].element];
+  for (let i in this.children) {
+    if (this.children[i].type === Types.element[0]) {
+      counts[this.children[i].element] = counts[this.children[i].element] || 0;
+      counts[this.children[i].element] += this.children[i].count || 1;
     } else {
-      let groupCount = RecursiveCount(parsed[i].children);
+      let groupCount = this.children[i].counts;
 
       for (let o in groupCount) {
-        if (parsed[i].count) groupCount[o] *= parsed[i].count;
-        counts[o] = isNaN(counts[o]) ? groupCount[o] || 0 : (groupCount[o] || 0) + counts[o];
+        if (this.children[i].count) groupCount[o] *= this.children[i].count;
+        counts[o] = (groupCount[o] || 0) + (counts[o] || 0);
       }
     }
   }
@@ -134,13 +160,26 @@ const RecursiveCount = parsed => {
   return counts;
 };
 
-module.exports = RecursiveCount;
+const getMass = function getMass() {
+  const counts = getCounts.call(this);
+  let sum = 0;
 
-/***/ }),
-/* 4 */
-/***/ (function(module, exports) {
+  for (let i in counts) {
+    sum += AtomicToAMU[Number(i) - 1] * counts[i];
+  }
 
-module.exports = (id, members) => {
+  return this.type === 'molecule' ? Math.round(sum * 1000) / 1000 : sum;
+};
+
+const append = function append(item) {
+  if (!item || Types.all.indexOf(item.type) === -1) throw new Error('Cannot append invalid item');
+  this.children.push(item);
+};
+
+const findById = function findById(self, id) {
+  if (id === false) return self;
+  const members = this.children;
+
   for (let i in members) {
     if (members[i].id === id) return members[i];
 
@@ -153,8 +192,49 @@ module.exports = (id, members) => {
   return null;
 };
 
+const getChildIds = function getChildIds() {
+  let ids = {};
+
+  for (let i in this.children) {
+    ids[this.children[i].id] = false;
+
+    if (this.children[i].childIds) {
+      ids = _objectSpread({}, ids, {}, this.children[i].childIds);
+    }
+  }
+
+  return ids;
+};
+
+const getElementFraction = function getElementFraction(element) {
+  const counts = getCounts.call(this);
+  let sum = 0;
+
+  for (let i in counts) {
+    sum += counts[i] || 0;
+  }
+
+  return (counts[element] || 0) / sum;
+};
+
+const getMassFraction = function getMassFraction(element) {
+  const counts = getCounts.call(this);
+  const mass = getMass.call(this);
+  (counts[element] || 0) * AtomicToAMU[Number(element) - 1] / mass;
+};
+
+module.exports = {
+  getCounts,
+  getMass,
+  append,
+  findById,
+  getChildIds,
+  getElementFraction,
+  getMassFraction
+};
+
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
@@ -163,7 +243,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 function _classPrivateFieldGet(receiver, privateMap) { var descriptor = privateMap.get(receiver); if (!descriptor) { throw new TypeError("attempted to get private field on non-instance"); } if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
 
-const Molecule = __webpack_require__(6);
+const Molecule = __webpack_require__(7);
 
 class Generator {
   constructor() {
@@ -212,7 +292,7 @@ var _state = new WeakMap();
 module.exports = new Generator();
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
@@ -227,19 +307,17 @@ function _classPrivateFieldSet(receiver, privateMap, value) { var descriptor = p
 
 function _classPrivateFieldGet(receiver, privateMap) { var descriptor = privateMap.get(receiver); if (!descriptor) { throw new TypeError("attempted to get private field on non-instance"); } if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
 
-const Basic = __webpack_require__(7);
+const Basic = __webpack_require__(8);
 
-const Iupac = __webpack_require__(9);
-
-const RecursiveCount = __webpack_require__(3);
-
-const ElementFraction = __webpack_require__(13);
-
-const FindById = __webpack_require__(4);
+const Iupac = __webpack_require__(10);
 
 const Element = __webpack_require__(14);
 
-const Subgroup = __webpack_require__(17);
+const Subgroup = __webpack_require__(16);
+
+const Collection = __webpack_require__(5);
+
+const Types = __webpack_require__(0);
 
 const SCHEMA_VERSION = '0.1.0';
 
@@ -247,24 +325,18 @@ class Molecule {
   constructor(_ref) {
     let _rawText = _ref.rawText,
         _format = _ref.format,
-        _options = _objectWithoutProperties(_ref, ["rawText", "format"]);
-
-    _formats.set(this, {
-      writable: true,
-      value: ['basic', 'iupac']
-    });
+        parent = _ref.parent,
+        _options = _objectWithoutProperties(_ref, ["rawText", "format", "parent"]);
 
     _state.set(this, {
       writable: true,
       value: {
+        type: 'molecule',
         children: [],
-        idIndex: 0
+        idIndex: 0,
+        formats: ['basic', 'iupac']
       }
     });
-
-    _defineProperty(this, "version", SCHEMA_VERSION);
-
-    _defineProperty(this, "type", 'molecule');
 
     _createId.set(this, {
       writable: true,
@@ -274,10 +346,7 @@ class Molecule {
       }
     });
 
-    _defineProperty(this, "findById", id => {
-      if (id === false) return this;
-      return FindById(id, _classPrivateFieldGet(this, _state).children);
-    });
+    _defineProperty(this, "findById", Collection.findById.bind(_classPrivateFieldGet(this, _state), this));
 
     _defineProperty(this, "serialize", () => {
       let children = Array.prototype.slice.call(_classPrivateFieldGet(this, _state).children);
@@ -305,14 +374,14 @@ class Molecule {
       _classPrivateFieldGet(this, _state).rawText = mol.fromText;
 
       for (let i in mol.children) {
-        if (mol.children[i].type === 'element') {
+        if (mol.children[i].type === Types.element[0]) {
           let elProps = _objectSpread({}, mol.children[i]);
 
           delete elProps.type;
           delete elProps.element;
           let el = this.createElement(mol.children[i].element, elProps);
           this.append(el);
-        } else if (['subgroup', 'complex', 'fngroup', 'chain'].indexOf(mol.children[i].type) !== -1) {
+        } else if (Types.subgroup.indexOf(mol.children[i].type) !== -1) {
           let groupProps = _objectSpread({}, mol.children[i]);
 
           delete groupProps.children;
@@ -334,27 +403,20 @@ class Molecule {
       id: _classPrivateFieldGet(this, _createId).call(this)
     })));
 
-    _defineProperty(this, "append", item => {
-      const types = ['element', 'subgroup', 'complex', 'fngroup', 'chain'];
-      if (!item || types.indexOf(item.type) === -1) throw new Error('Cannot append invalid item');
+    _defineProperty(this, "append", Collection.append.bind(_classPrivateFieldGet(this, _state)));
 
-      _classPrivateFieldGet(this, _state).children.push(item);
-    });
+    _defineProperty(this, "getElementFraction", Collection.getElementFraction.bind(_classPrivateFieldGet(this, _state)));
 
-    _defineProperty(this, "getCounts", () => RecursiveCount(_classPrivateFieldGet(this, _state).children));
-
-    _defineProperty(this, "getCount", element => RecursiveCount(_classPrivateFieldGet(this, _state).children)[element] || 0);
-
-    _defineProperty(this, "getElementFraction", element => ElementFraction(_classPrivateFieldGet(this, _state).children, element));
+    _defineProperty(this, "getMassFraction", Collection.getMassFraction.bind(_classPrivateFieldGet(this, _state)));
 
     _defineProperty(this, "parse", () => {
       let _classPrivateFieldGet2 = _classPrivateFieldGet(this, _state),
           rawText = _classPrivateFieldGet2.rawText,
           format = _classPrivateFieldGet2.format;
 
-      if (format === _classPrivateFieldGet(this, _formats)[0]) {
+      if (format === _classPrivateFieldGet(this, _state).formats[0]) {
         _classPrivateFieldGet(this, _state).children = Basic.call(this, rawText);
-      } else if (format === _classPrivateFieldGet(this, _formats)[1]) {
+      } else if (format === _classPrivateFieldGet(this, _state).formats[1]) {
         _classPrivateFieldGet(this, _state).children = Iupac.call(this, rawText);
       } else if (typeof _classPrivateFieldGet(this, _state).options.parsers[format] === 'function') {
         _classPrivateFieldGet(this, _state).children = _classPrivateFieldGet(this, _state).options.parsers[format].call(this, rawText);
@@ -364,18 +426,19 @@ class Molecule {
     });
 
     for (let i in _options.parsers) {
-      _classPrivateFieldGet(this, _formats).push(i);
+      _classPrivateFieldGet(this, _state).formats.push(i);
     }
 
     const fromText = typeof _rawText === 'string';
 
-    if (fromText && _classPrivateFieldGet(this, _formats).indexOf(_format) === -1) {
+    if (fromText && _classPrivateFieldGet(this, _state).formats.indexOf(_format) === -1) {
       throw new Error(`Text to parse and format must be specified.`);
     }
 
     _classPrivateFieldSet(this, _state, _objectSpread({}, _classPrivateFieldGet(this, _state), {}, {
       rawText: _rawText,
       format: _format,
+      parent,
       options: _objectSpread({}, {}, {}, _options)
     }));
 
@@ -386,33 +449,27 @@ class Molecule {
     return Array.prototype.slice.call(_classPrivateFieldGet(this, _state).children);
   }
 
+  get type() {
+    return _classPrivateFieldGet(this, _state).type;
+  }
+
+  get version() {
+    return SCHEMA_VERSION;
+  }
+
   get mass() {
-    let sum = 0;
+    return Collection.getMass.call(_classPrivateFieldGet(this, _state));
+  }
 
-    for (let i in _classPrivateFieldGet(this, _state).children) {
-      sum += _classPrivateFieldGet(this, _state).children[i].mass;
-    }
-
-    return Math.round(sum * 1000) / 1000;
+  get counts() {
+    return Collection.getCounts.call(_classPrivateFieldGet(this, _state));
   }
 
   get childIds() {
-    let ids = {};
-
-    for (let i in _classPrivateFieldGet(this, _state).children) {
-      ids[_classPrivateFieldGet(this, _state).children[i].id] = false;
-
-      if (_classPrivateFieldGet(this, _state).children[i].childIds) {
-        ids = _objectSpread({}, ids, {}, _classPrivateFieldGet(this, _state).children[i].childIds);
-      }
-    }
-
-    return ids;
+    return Collection.getChildIds.call(_classPrivateFieldGet(this, _state));
   }
 
 }
-
-var _formats = new WeakMap();
 
 var _state = new WeakMap();
 
@@ -421,18 +478,18 @@ var _createId = new WeakMap();
 module.exports = Molecule;
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-const Parser = __webpack_require__(0);
+const Parser = __webpack_require__(1);
 
-const Y = __webpack_require__(1);
+const Y = __webpack_require__(2);
 
-const ConvertToAtomic = __webpack_require__(8);
+const ConvertToAtomic = __webpack_require__(9);
 
 const BasicGrammar = function BasicGrammar(Token, All, Any, Plus, Optional, Node) {
   const Molecule = this;
@@ -472,10 +529,10 @@ module.exports = function (text) {
 };
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const AtomicToSymbol = __webpack_require__(2);
+const AtomicToSymbol = __webpack_require__(3);
 
 const SymbolToAtomic = AtomicToSymbol.reduce((a, b, c) => {
   a[b] = Number(c) + 1;
@@ -488,22 +545,22 @@ module.exports = symbol => {
 };
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-const Parser = __webpack_require__(0);
+const Parser = __webpack_require__(1);
 
-const Y = __webpack_require__(1);
+const Y = __webpack_require__(2);
 
-const HydrocarbonPrefix = __webpack_require__(10);
+const HydrocarbonPrefix = __webpack_require__(11);
 
-const FunctionalGroups = __webpack_require__(11);
+const FunctionalGroups = __webpack_require__(12);
 
-const GreekCounts = __webpack_require__(12);
+const GreekCounts = __webpack_require__(13);
 
 const IupacGrammar = function IupacGrammar(Token, All, Any, Plus, Optional, Node) {
   const Molecule = this;
@@ -526,6 +583,11 @@ const IupacGrammar = function IupacGrammar(Token, All, Any, Plus, Optional, Node
 
     const CyclicNode = Node(Token(/(cyclo)/g, 'cyclic'), () => ({
       cyclic: true
+    }));
+    /** ex. acid */
+
+    const AcidNode = Node(Token(/(\sacid)/g, 'acid'), () => ({
+      acid: true
     }));
     /** ex. 1 */
 
@@ -600,7 +662,8 @@ const IupacGrammar = function IupacGrammar(Token, All, Any, Plus, Optional, Node
     PrefixNode, // -1,2- (denotes same thing as first one)
     Optional(LocationGroup), // -ane, -ene, -yne
     BondCountNode, // -1,2-diol
-    Optional(Plus(PostFunctionalGroup))), groups => {
+    Optional(Plus(PostFunctionalGroup)), // acid
+    Optional(AcidNode)), groups => {
       let chainProps = groups.reduce((a, b) => {
         if (b.hasOwnProperty('location')) {
           a.location = a.location.concat(b.location);
@@ -622,8 +685,7 @@ const IupacGrammar = function IupacGrammar(Token, All, Any, Plus, Optional, Node
       let locLength = chainProps.location.length || 1;
       let chainCount = chainProps.prefix || 1;
       let bondCount = chainProps.bondCount;
-      let hydrogenCount = chainCount * 2 + 2 - (bondCount - 1) * locLength * 2 - groupCount; // 2 2 0 3
-
+      let hydrogenCount = chainCount * 2 + 2 - (bondCount - 1) * locLength * 2 - groupCount;
       let chainChildren = chainProps.children.concat([Molecule.createElement(6, {
         count: chainProps.prefix,
         chain: true
@@ -648,41 +710,22 @@ module.exports = function (text) {
 };
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module) {
 
 module.exports = ["meth","eth","prop","but","pent","hex","hept","oct","non","dec","undec","dodec","tridec","tetradec","pentadec","hexadec","heptadec","octadec","nonadec","icosn"];
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module) {
 
 module.exports = {"fluoro":{"members":[{"type":"element","element":9}],"pre":true},"chloro":{"members":[{"type":"element","element":17}],"pre":true},"bromo":{"members":[{"type":"element","element":35}],"pre":true},"iodo":{"members":[{"type":"element","element":53}],"pre":true},"ol":{"members":[{"element":8,"type":"element"},{"element":1,"type":"element"}],"pre":false},"methyl":{"members":[{"element":6,"type":"element"},{"element":1,"type":"element","count":3}],"pre":true}};
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module) {
 
 module.exports = ["mono","di","tri","tetra","penta","hexa","hepta","octa","ennea","deca","hendeca","dodeca","triskaideca","tetrakaideca","pentakaideca","hexakaideca","heptakaideca","octakaideca","enneakaideca","icosa"];
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-const RecursiveCount = __webpack_require__(3);
-
-const Fraction = (parsed, element) => {
-  let counts = RecursiveCount(parsed);
-  let sum = 0;
-
-  for (let i in counts) {
-    sum += counts[i] || 0;
-  }
-
-  return (counts[element] || 0) / sum;
-};
-
-module.exports = Fraction;
 
 /***/ }),
 /* 14 */
@@ -698,11 +741,11 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 function _classPrivateFieldGet(receiver, privateMap) { var descriptor = privateMap.get(receiver); if (!descriptor) { throw new TypeError("attempted to get private field on non-instance"); } if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
 
-const AtomicToSymbol = __webpack_require__(2);
+const AtomicToSymbol = __webpack_require__(3);
 
 const AtomicToName = __webpack_require__(15);
 
-const AtomicToAMU = __webpack_require__(16);
+const AtomicToAMU = __webpack_require__(4);
 
 class Element {
   constructor(atomicNumber, _ref) {
@@ -801,12 +844,6 @@ module.exports = ["Hydrogen","Helium","Lithium","Beryllium","Boron","Carbon","Ni
 
 /***/ }),
 /* 16 */
-/***/ (function(module) {
-
-module.exports = [1.008,4.0026,7,9.012183,10.81,12.011,14.007,15.999,18.99840316,20.18,22.9897693,24.305,26.981538,28.085,30.973762,32.07,35.45,39.9,39.098,40.08,44.95591,47.87,50.941,51.996,54.93804,55.84,58.93319,58.693,63.55,65.4,69.72,72.63,74.92159,78.97,79.9,83.8,85.468,87.6,88.9058,91.22,92.9064,96,97.90721,101.1,102.9055,106.4,107.868,112.41,114.82,118.71,121.76,127.6,126.9045,131.29,132.905452,137.33,138.9055,140.12,140.9077,144.24,144.91276,150.4,151.96,157.2,158.92535,162.5,164.93033,167.26,168.93422,173.04,174.967,178.5,180.9479,183.8,186.21,190.2,192.22,195.08,196.96657,200.59,204.383,207,208.9804,208.98243,209.98715,222.01758,223.01973,226.02541,227.02775,232.038,231.0359,238.0289,237.04817,244.0642,243.06138,247.07035,247.07031,251.07959,252.083,257.09511,258.09843,259.101,262.11,267.122,268.126,271.134,274.144,277.152,278.156,281.165,282.169,285.177,286.183,289.191,290.196,293.205,294.211,294.214];
-
-/***/ }),
-/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
@@ -819,14 +856,16 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 function _classPrivateFieldGet(receiver, privateMap) { var descriptor = privateMap.get(receiver); if (!descriptor) { throw new TypeError("attempted to get private field on non-instance"); } if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
 
-const FindById = __webpack_require__(4);
+const Collection = __webpack_require__(5);
+
+const Types = __webpack_require__(0);
 
 class Subgroup {
   constructor(_children, _ref) {
     let _type = _ref.type,
         count = _ref.count,
         charge = _ref.charge,
-        _id = _ref.id,
+        id = _ref.id,
         molecule = _ref.molecule,
         _meta = _objectWithoutProperties(_ref, ["type", "count", "charge", "id", "molecule"]);
 
@@ -843,7 +882,7 @@ class Subgroup {
       }
     });
 
-    _defineProperty(this, "findById", id => FindById(id, _classPrivateFieldGet(this, _state).children));
+    _defineProperty(this, "findById", Collection.findById.bind(_classPrivateFieldGet(this, _state), this));
 
     _defineProperty(this, "serialize", () => {
       let children = Array.prototype.slice.call(_classPrivateFieldGet(this, _state).children);
@@ -877,7 +916,7 @@ class Subgroup {
 
 
           this.append(el);
-        } else if (['subgroup', 'complex', 'fngroup', 'chain'].indexOf(mol[i].type) !== -1) {
+        } else if (Types.subgroup.indexOf(mol[i].type) !== -1) {
           let groupProps = _objectSpread({}, mol[i]);
 
           delete groupProps.children;
@@ -892,9 +931,7 @@ class Subgroup {
     });
 
     _defineProperty(this, "setType", type => {
-      const types = ['subgroup', 'complex', 'fngroup', 'chain'];
-
-      if (types.indexOf(type) !== -1) {
+      if (Types.subgroup.indexOf(type) !== -1) {
         _classPrivateFieldGet(this, _state).type = type;
       } else if (type) {
         throw new Error(`Invalid subgroup type: ${type}`);
@@ -909,15 +946,10 @@ class Subgroup {
       });
     });
 
-    _defineProperty(this, "append", item => {
-      const types = ['element', 'subgroup', 'complex', 'chain', 'fngroup'];
-      if (!item || types.indexOf(item.type) === -1) throw new Error('Cannot append invalid item');
-
-      _classPrivateFieldGet(this, _state).children.push(item);
-    });
+    _defineProperty(this, "append", Collection.append.bind(_classPrivateFieldGet(this, _state)));
 
     this.setType(_type);
-    _classPrivateFieldGet(this, _state).id = _id;
+    _classPrivateFieldGet(this, _state).id = id;
     _classPrivateFieldGet(this, _state).molecule = molecule;
     this.set('count', count);
     this.set('charge', charge);
@@ -946,17 +978,11 @@ class Subgroup {
   }
 
   get childIds() {
-    let ids = {};
+    return Collection.getChildIds.call(_classPrivateFieldGet(this, _state));
+  }
 
-    for (let i in _classPrivateFieldGet(this, _state).children) {
-      ids[_classPrivateFieldGet(this, _state).children[i].id] = _classPrivateFieldGet(this, _state).id;
-
-      if (_classPrivateFieldGet(this, _state).children[i].childIds) {
-        ids = _objectSpread({}, ids, {}, _classPrivateFieldGet(this, _state).children[i].childIds);
-      }
-    }
-
-    return ids;
+  get counts() {
+    return Collection.getCounts.call(_classPrivateFieldGet(this, _state));
   }
 
   get count() {
@@ -972,13 +998,7 @@ class Subgroup {
   }
 
   get mass() {
-    let sum = 0;
-
-    for (let i in _classPrivateFieldGet(this, _state).children) {
-      sum += _classPrivateFieldGet(this, _state).children[i].mass;
-    }
-
-    return sum * _classPrivateFieldGet(this, _state).meta.count;
+    return Collection.getMass.call(_classPrivateFieldGet(this, _state));
   }
 
   get parent() {
