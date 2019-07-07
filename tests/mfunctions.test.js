@@ -3,7 +3,7 @@ const Molecule = require("../src/mcul");
 
 test("Generator has correct types", () => {
   let instance = Molecule.createFromText("[Cu(NH3)6]3(H2O)12Mo", "basic");
-  expect(instance.getCounts()).toMatchInlineSnapshot(`
+  expect(instance.counts).toMatchInlineSnapshot(`
     Object {
       "1": 78,
       "29": 3,
@@ -12,6 +12,6 @@ test("Generator has correct types", () => {
       "8": 12,
     }
   `);
-  expect(instance.getCount(1)).toBe(78);
+  expect(instance.counts[1]).toBe(78);
   expect(instance.mass).toBe(809.388);
 });

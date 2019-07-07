@@ -1,4 +1,5 @@
-const FindById = require('./shared/mol/findById');
+const Collection = require('./shared/Collection');
+const Types = require('./shared/types');
 
 class Subgroup {
     #state = {
@@ -33,7 +34,7 @@ class Subgroup {
         return this.#state.id;
     }
 
-    findById = (id) => (FindById(id, this.#state.children));
+    findById = Collection.findById.bind(this.#state, this);
 
     serialize = () => {
         let children = Array.prototype.slice.call(this.#state.children);
@@ -64,7 +65,7 @@ class Subgroup {
                 delete elProps.element;
                 let el = this.#state.molecule.createElement(mol[i].element, elProps); //test
                 this.append(el);
-            } else if (['subgroup', 'complex', 'fngroup', 'chain'].indexOf(mol[i].type) !== -1) {
+            } else if (Types.subgroup.indexOf(mol[i].type) !== -1) {
                 let groupProps = {...mol[i]};
                 delete groupProps.children;
                 delete groupProps.type;
@@ -84,26 +85,19 @@ class Subgroup {
     }
 
     get childIds() {
-        let ids = {};
-        for (let i in this.#state.children) {
-            ids[this.#state.children[i].id] = this.#state.id;
-            if (this.#state.children[i].childIds) {
-                ids = {
-                    ...ids,
-                    ...this.#state.children[i].childIds,
-                };
-            }
-        }
-        return ids;
+        return Collection.getChildIds.call(this.#state);
     }
 
     setType = (type) => {
-        const types = ['subgroup', 'complex', 'fngroup', 'chain'];
-        if (types.indexOf(type) !== -1) {
+        if (Types.subgroup.indexOf(type) !== -1) {
             this.#state.type = type;
         } else if (type) {
             throw new Error(`Invalid subgroup type: ${type}`);
         }
+    }
+
+    get counts() {
+        return Collection.getCounts.call(this.#state);
     }
 
     get count() {
@@ -119,11 +113,7 @@ class Subgroup {
     }
 
     get mass() {
-        let sum = 0;
-        for (let i in this.#state.children) {
-            sum += this.#state.children[i].mass;
-        }
-        return sum * this.#state.meta.count;
+        return Collection.getMass.call(this.#state);
     }
 
     set = (key, value) => {
@@ -136,11 +126,7 @@ class Subgroup {
         };
     };
 
-    append = (item) => {
-        const types = ['element', 'subgroup', 'complex', 'chain', 'fngroup'];
-        if (!item || types.indexOf(item.type) === -1) throw new Error('Cannot append invalid item');
-        this.#state.children.push(item);
-    }
+    append = Collection.append.bind(this.#state);
 
     get parent() {
         return this.#state.molecule.findById(this.#state.molecule.childIds[this.#state.id]);

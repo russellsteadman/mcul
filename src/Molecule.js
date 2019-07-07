@@ -1,30 +1,28 @@
 const Basic = require('./parsers/basic');
 const Iupac = require('./parsers/iupac');
-const RecursiveCount = require('./shared/mol/recursiveCount');
-const ElementFraction = require('./shared/mol/elementFraction');
-const FindById = require('./shared/mol/findById');
 const Element = require('./Element');
 const Subgroup = require('./Subgroup');
+const Collection = require('./shared/Collection');
+const Types = require('./shared/types');
 
 const SCHEMA_VERSION = '0.1.0';
 
 class Molecule {
-    #formats = ['basic', 'iupac'];
     #state = {
+        type: 'molecule',
         children: [],
         idIndex: 0,
+        formats: ['basic', 'iupac'],
     };
-    version = SCHEMA_VERSION;
-    type = 'molecule';
 
-    constructor({rawText, format, ...options}) {
+    constructor({rawText, format, parent, ...options}) {
         for (let i in options.parsers) {
-            this.#formats.push(i);
+            this.#state.formats.push(i);
         }
 
         const fromText = typeof rawText === 'string';
 
-        if (fromText && this.#formats.indexOf(format) === -1) {
+        if (fromText && this.#state.formats.indexOf(format) === -1) {
             throw new Error(`Text to parse and format must be specified.`);
         }
 
@@ -33,6 +31,7 @@ class Molecule {
             ...{
                 rawText,
                 format,
+                parent,
                 options: {
                     ...{},
                     ...options,
@@ -48,10 +47,7 @@ class Molecule {
         return this.#state.idIndex.toString(36);
     };
 
-    findById = (id) => {
-        if (id === false) return this;
-        return FindById(id, this.#state.children);
-    };
+    findById = Collection.findById.bind(this.#state, this);
 
     serialize = () => {
         let children = Array.prototype.slice.call(this.#state.children);
@@ -79,13 +75,13 @@ class Molecule {
         this.#state.rawText = mol.fromText;
 
         for (let i in mol.children) {
-            if (mol.children[i].type === 'element') {
+            if (mol.children[i].type === Types.element[0]) {
                 let elProps = {...mol.children[i]};
                 delete elProps.type;
                 delete elProps.element;
                 let el = this.createElement(mol.children[i].element, elProps);
                 this.append(el);
-            } else if (['subgroup', 'complex', 'fngroup', 'chain'].indexOf(mol.children[i].type) !== -1) {
+            } else if (Types.subgroup.indexOf(mol.children[i].type) !== -1) {
                 let groupProps = {...mol.children[i]};
                 delete groupProps.children;
                 delete groupProps.type;
@@ -108,33 +104,36 @@ class Molecule {
         id: this.#createId(),
     }));
 
-    append = (item) => {
-        const types = ['element', 'subgroup', 'complex', 'fngroup', 'chain'];
-        if (!item || types.indexOf(item.type) === -1) throw new Error('Cannot append invalid item');
-        this.#state.children.push(item);
-    }
+    append = Collection.append.bind(this.#state);
 
     get children() {
         return Array.prototype.slice.call(this.#state.children);
     }
 
-    get mass() {
-        let sum = 0;
-        for (let i in this.#state.children) {
-            sum += this.#state.children[i].mass;
-        }
-        return Math.round(sum * 1000) / 1000;
+    get type() {
+        return this.#state.type;
     }
 
-    getCounts = () => (RecursiveCount(this.#state.children));
-    getCount = (element) => (RecursiveCount(this.#state.children)[element] || 0);
-    getElementFraction = (element) => (ElementFraction(this.#state.children, element));
+    get version() {
+        return SCHEMA_VERSION;
+    }
+
+    get mass() {
+        return Collection.getMass.call(this.#state);
+    }
+
+    get counts() {
+        return Collection.getCounts.call(this.#state);
+    }
+
+    getElementFraction = Collection.getElementFraction.bind(this.#state);
+    getMassFraction = Collection.getMassFraction.bind(this.#state);
 
     parse = () => {
         let { rawText, format } = this.#state;
-        if (format === this.#formats[0]) {
+        if (format === this.#state.formats[0]) {
             this.#state.children = Basic.call(this, rawText);
-        } else if (format === this.#formats[1]) {
+        } else if (format === this.#state.formats[1]) {
             this.#state.children = Iupac.call(this, rawText);
         } else if (typeof this.#state.options.parsers[format] === 'function') {
             this.#state.children = this.#state.options.parsers[format].call(this, rawText);
@@ -144,17 +143,7 @@ class Molecule {
     };
 
     get childIds() {
-        let ids = {};
-        for (let i in this.#state.children) {
-            ids[this.#state.children[i].id] = false;
-            if (this.#state.children[i].childIds) {
-                ids = {
-                    ...ids,
-                    ...this.#state.children[i].childIds,
-                };
-            }
-        }
-        return ids;
+        return Collection.getChildIds.call(this.#state);
     }
 }
 

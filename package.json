@@ -1,6 +1,6 @@
 {
   "name": "mcul",
-  "version": "0.1.0-alpha1",
+  "version": "0.1.0-alpha2",
   "description": "A molecular parsing engine",
   "main": "dist/mcul.node.js",
   "repository": "https://github.com/teamtofu/mcul",

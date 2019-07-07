@@ -3,14 +3,14 @@ const Molecule = require('./Molecule');
 class Generator {
     #state = {
         parsers: {},
-        defaultFormat: 'basic'
-    }
+        defaultFormat: 'basic',
+    };
 
     create = (options) => {
         return new Molecule({
             ...options,
             parsers: this.#state.parsers,
-            parent: this
+            parent: this,
         });
     };
     
@@ -21,7 +21,7 @@ class Generator {
             parsers: this.#state.parsers,
             rawText,
             format,
-            parent: this
+            parent: this,
         });
     };
 
