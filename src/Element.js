@@ -5,27 +5,36 @@ const AtomicToAMU = require('./maps/atomicToAMU.json');
 class Element {
     #state = {
         el: 1,
-        count: 1,
-        charge: 0,
         id: '',
-        molecule: null
+        molecule: null,
+        meta: {
+            count: 1,
+            charge: 0,
+        },
     };
 
-    constructor(atomicNumber, {count, charge, id, molecule}) {
+    constructor(atomicNumber, {count, charge, id, molecule, ...meta}) {
         this.#state.el = Number(atomicNumber);
-        this.setCount(count);
-        this.setCharge(charge);
+        this.set('count', count);
+        this.set('charge', charge);
         this.#state.id = id;
         this.#state.molecule = molecule;
+        this.#state.meta = {
+            ...this.#state.meta,
+            ...meta,
+        };
     }
 
     serialize = () => {
+        let meta = {...this.#state.meta};
+        if (meta.charge === 0) delete meta.charge;
+        if (meta.count === 1) delete meta.count;
+
         return {
             type: 'element',
             element: this.#state.el,
             id: this.#state.id,
-            ...(this.#state.count !== 1 ? {count: this.#state.count} : {}),
-            ...(this.#state.charge !== 0 ? {charge: this.#state.charge} : {})
+            ...(Object.keys(meta).length === 0 ? {} : meta),
         };
     };
 
@@ -44,25 +53,25 @@ class Element {
     }
 
     get mass() {
-        return AtomicToAMU[this.#state.el - 1] * this.#state.count;
+        return AtomicToAMU[this.#state.el - 1] * this.#state.meta.count;
     }
 
     get count() {
-        return this.#state.count;
+        return this.#state.meta.count;
     }
 
     get charge() {
-        return this.#state.charge;
+        return this.#state.meta.charge;
     }
 
-    setCount = (count) => {
-        if (isNaN(count) || !Number.isInteger(count) || count === 0) return;
-        this.#state.count = count;
-    };
+    set = (key, value) => {
+        if (key === 'count' && (isNaN(value) || !Number.isInteger(value) || value === 0)) return;
+        if (key === 'charge' && (isNaN(value) || !Number.isInteger(value))) return;
 
-    setCharge = (charge) => {
-        if (isNaN(charge) || !Number.isInteger(charge)) return;
-        this.#state.charge = charge;
+        this.#state.meta = {
+            ...this.#state.meta,
+            [key]: value,
+        };
     };
 
     get parent() {

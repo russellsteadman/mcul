@@ -1,27 +1,42 @@
 {
     "fluoro": {
-        "type": "element",
-        "element": 9,
+        "members": [
+            {
+                "type": "element",
+                "element": 9
+            }
+        ],
         "pre": true
     },
     "chloro": {
-        "type": "element",
-        "element": 17,
+        "members": [
+            {
+                "type": "element",
+                "element": 17
+            }
+        ],
         "pre": true
     },
     "bromo": {
-        "type": "element",
-        "element": 35,
+        "members": [
+            {
+                "type": "element",
+                "element": 35
+            }
+        ],
         "pre": true
     },
     "iodo": {
-        "type": "element",
-        "element": 53,
+        "members": [
+            {
+                "type": "element",
+                "element": 53
+            }
+        ],
         "pre": true
     },
     "ol": {
-        "type": "subgroup",
-        "subgroup": [
+        "members": [
             {
                 "element": 8,
                 "type": "element"
@@ -32,5 +47,19 @@
             }
         ],
         "pre": false
+    },
+    "methyl": {
+        "members": [
+            {
+                "element": 6,
+                "type": "element"
+            },
+            {
+                "element": 1,
+                "type": "element",
+                "count": 3
+            }
+        ],
+        "pre": true
     }
 }

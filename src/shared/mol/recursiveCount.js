@@ -6,7 +6,7 @@ const RecursiveCount = (parsed) => {
             counts[parsed[i].element] = isNaN(counts[parsed[i].element])
                 ? (parsed[i].count || 1)
                 : (parsed[i].count || 1) * counts[parsed[i].element];
-        } else if (parsed[i].type === 'subgroup' || parsed[i].type === 'complex') {
+        } else {
             let groupCount = RecursiveCount(parsed[i].children);
             for (let o in groupCount) {
                 if (parsed[i].count) groupCount[o] *= parsed[i].count;

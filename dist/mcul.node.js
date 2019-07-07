@@ -121,7 +121,7 @@ const RecursiveCount = parsed => {
   for (let i in parsed) {
     if (parsed[i].type === 'element') {
       counts[parsed[i].element] = isNaN(counts[parsed[i].element]) ? parsed[i].count || 1 : (parsed[i].count || 1) * counts[parsed[i].element];
-    } else if (parsed[i].type === 'subgroup' || parsed[i].type === 'complex') {
+    } else {
       let groupCount = RecursiveCount(parsed[i].children);
 
       for (let o in groupCount) {
@@ -157,11 +157,11 @@ module.exports = (id, members) => {
 /* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-function _classPrivateFieldGet(receiver, privateMap) { if (!privateMap.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } var descriptor = privateMap.get(receiver); if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
+function _classPrivateFieldGet(receiver, privateMap) { var descriptor = privateMap.get(receiver); if (!descriptor) { throw new TypeError("attempted to get private field on non-instance"); } if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
 
 const Molecule = __webpack_require__(6);
 
@@ -215,7 +215,7 @@ module.exports = new Generator();
 /* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
 
 function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
 
@@ -223,9 +223,9 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-function _classPrivateFieldSet(receiver, privateMap, value) { if (!privateMap.has(receiver)) { throw new TypeError("attempted to set private field on non-instance"); } var descriptor = privateMap.get(receiver); if (descriptor.set) { descriptor.set.call(receiver, value); } else { if (!descriptor.writable) { throw new TypeError("attempted to set read only private field"); } descriptor.value = value; } return value; }
+function _classPrivateFieldSet(receiver, privateMap, value) { var descriptor = privateMap.get(receiver); if (!descriptor) { throw new TypeError("attempted to set private field on non-instance"); } if (descriptor.set) { descriptor.set.call(receiver, value); } else { if (!descriptor.writable) { throw new TypeError("attempted to set read only private field"); } descriptor.value = value; } return value; }
 
-function _classPrivateFieldGet(receiver, privateMap) { if (!privateMap.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } var descriptor = privateMap.get(receiver); if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
+function _classPrivateFieldGet(receiver, privateMap) { var descriptor = privateMap.get(receiver); if (!descriptor) { throw new TypeError("attempted to get private field on non-instance"); } if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
 
 const Basic = __webpack_require__(7);
 
@@ -298,6 +298,32 @@ class Molecule {
       } : {});
     });
 
+    _defineProperty(this, "unserialize", text => {
+      let mol = JSON.parse(text);
+      if (mol.version.split('.')[0] !== SCHEMA_VERSION.split('.')[0]) throw new Error('Incompatible version');
+      _classPrivateFieldGet(this, _state).idIndex = mol.idIndex;
+      _classPrivateFieldGet(this, _state).rawText = mol.fromText;
+
+      for (let i in mol.children) {
+        if (mol.children[i].type === 'element') {
+          let elProps = _objectSpread({}, mol.children[i]);
+
+          delete elProps.type;
+          delete elProps.element;
+          let el = this.createElement(mol.children[i].element, elProps);
+          this.append(el);
+        } else if (['subgroup', 'complex', 'fngroup', 'chain'].indexOf(mol.children[i].type) !== -1) {
+          let groupProps = _objectSpread({}, mol.children[i]);
+
+          delete groupProps.children;
+          delete groupProps.type;
+          let group = this.createSubgroup([], groupProps);
+          group.unserialize(mol.children[i].children || []);
+          this.append(group);
+        }
+      }
+    });
+
     _defineProperty(this, "createElement", (element, options) => new Element(element, _objectSpread({}, options, {
       molecule: this,
       id: _classPrivateFieldGet(this, _createId).call(this)
@@ -309,7 +335,7 @@ class Molecule {
     })));
 
     _defineProperty(this, "append", item => {
-      const types = ['element', 'subgroup', 'complex'];
+      const types = ['element', 'subgroup', 'complex', 'fngroup', 'chain'];
       if (!item || types.indexOf(item.type) === -1) throw new Error('Cannot append invalid item');
 
       _classPrivateFieldGet(this, _state).children.push(item);
@@ -347,10 +373,10 @@ class Molecule {
       throw new Error(`Text to parse and format must be specified.`);
     }
 
-    _classPrivateFieldSet(this, _state, _objectSpread({}, _classPrivateFieldGet(this, _state), {
+    _classPrivateFieldSet(this, _state, _objectSpread({}, _classPrivateFieldGet(this, _state), {}, {
       rawText: _rawText,
       format: _format,
-      options: _objectSpread({}, {}, _options)
+      options: _objectSpread({}, {}, {}, _options)
     }));
 
     if (fromText) this.parse();
@@ -367,7 +393,7 @@ class Molecule {
       sum += _classPrivateFieldGet(this, _state).children[i].mass;
     }
 
-    return sum;
+    return Math.round(sum * 1000) / 1000;
   }
 
   get childIds() {
@@ -377,7 +403,7 @@ class Molecule {
       ids[_classPrivateFieldGet(this, _state).children[i].id] = false;
 
       if (_classPrivateFieldGet(this, _state).children[i].childIds) {
-        ids = _objectSpread({}, ids, _classPrivateFieldGet(this, _state).children[i].childIds);
+        ids = _objectSpread({}, ids, {}, _classPrivateFieldGet(this, _state).children[i].childIds);
       }
     }
 
@@ -398,7 +424,7 @@ module.exports = Molecule;
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -414,27 +440,27 @@ const BasicGrammar = function BasicGrammar(Token, All, Any, Plus, Optional, Node
     Token(/\s+/g, 'ignore');
     Token(/([()\][^_])/g, 'verbatim');
     const ElementToken = Token(/([A-Z][a-z]*)/g, 'element');
-    const Count = Token(/[^^+-]([0-9]+)/g, 'count');
+    const Count = Token(/([0-9]+)/g, 'count');
     const Charge = Token(/([+-]?[0-9]+)/g, 'charge');
     const ChargeNode = Node(All('^', Charge), charge => Number(charge) && Number(charge) !== 0 ? {
       charge: Number(charge)
     } : {});
-    const CountNode = Node(All(Optional('_'), Count), count => Number(count) && Number(count) !== 1 ? {
+    const CountNode = Node(All(Count), count => Number(count) && Number(count) !== 1 ? {
       count: Number(count)
     } : {});
-    const Suffix = Node(Any(All(Optional(ChargeNode), Optional(CountNode)), All(Optional(CountNode), Optional(ChargeNode))), stack => stack || []);
-    const ParentheticalGroup = Node(All('(', ThisGrammar, ')', Suffix), ([subgroup, suffix]) => Molecule.createSubgroup(subgroup, suffix.reduce((a, b) => {
-      a = _objectSpread({}, a, b);
+    const Suffix = Node(Any(All(Optional('_'), CountNode, ChargeNode), All(ChargeNode, '_', CountNode), ChargeNode, All(Optional('_'), CountNode)), stack => stack || []);
+    const ParentheticalGroup = Node(All('(', ThisGrammar, ')', Optional(Suffix)), ([subgroup, suffix]) => Molecule.createSubgroup(subgroup, (suffix || []).reduce((a, b) => {
+      a = _objectSpread({}, a, {}, b);
       return a;
     }, {})));
-    const ComplexGroup = Node(All('[', ThisGrammar, ']', Suffix), ([subgroup, suffix]) => Molecule.createSubgroup(subgroup, suffix.reduce((a, b) => {
-      a = _objectSpread({}, a, b);
+    const ComplexGroup = Node(All('[', ThisGrammar, ']', Optional(Suffix)), ([subgroup, suffix]) => Molecule.createSubgroup(subgroup, (suffix || []).reduce((a, b) => {
+      a = _objectSpread({}, a, {}, b);
       return a;
     }, {
       type: 'complex'
     })));
-    const FreeElement = Node(All(ElementToken, Suffix), ([symbol, suffix]) => Molecule.createElement(ConvertToAtomic(symbol), suffix.reduce((a, b) => {
-      a = _objectSpread({}, a, b);
+    const FreeElement = Node(All(ElementToken, Optional(Suffix)), ([symbol, suffix]) => Molecule.createElement(ConvertToAtomic(symbol), (suffix || []).reduce((a, b) => {
+      a = _objectSpread({}, a, {}, b);
       return a;
     }, {})));
     return Node(Plus(Any(FreeElement, ParentheticalGroup, ComplexGroup)), stack => stack);
@@ -465,7 +491,7 @@ module.exports = symbol => {
 /* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -480,36 +506,57 @@ const FunctionalGroups = __webpack_require__(11);
 const GreekCounts = __webpack_require__(12);
 
 const IupacGrammar = function IupacGrammar(Token, All, Any, Plus, Optional, Node) {
+  const Molecule = this;
   return Y(function (ThisGrammar) {
-    Token(/\s+/g, 'ignore');
-    Token(/([()\-,])/g, 'verbatim');
-    const PrefixNode = Node(Token(new RegExp(`(${HydrocarbonPrefix.join('|')})`, 'g'), 'prefix'), ([prefix]) => ({
-      prefix
+    Token(/\s+/g, 'ignore'); // Ignore whitespace
+
+    Token(/([(),-])/g, 'verbatim'); // Assistive characters
+
+    /** ex. meth, eth, prop, ... */
+
+    const PrefixNode = Node(Token(new RegExp(`(${HydrocarbonPrefix.join('|')})(?!yl)`, 'g'), 'prefix'), ([prefix]) => ({
+      prefix: Number(HydrocarbonPrefix.indexOf(prefix)) + 1
     }));
+    /** ex. ane, ene, an (depending upon context) ... */
+
     const BondCountNode = Node(Token(/(ane?|ene?|yne?)/g, 'bondCount'), ([bondCount]) => ({
-      bondCount
+      bondCount: bondCount[0] === 'a' ? 1 : bondCount[0] === 'e' ? 2 : 3
     }));
+    /** ex. cyclo */
+
     const CyclicNode = Node(Token(/(cyclo)/g, 'cyclic'), () => ({
       cyclic: true
     }));
+    /** ex. 1 */
+
     const LocationNode = Node(Token(/([0-9]+)/g, 'location'), ([location]) => location);
+    /** ex. fluoro */
+
     const PreFunctionalNode = Node(Token(new RegExp(`(${Object.keys(FunctionalGroups).filter(group => !!FunctionalGroups[group].pre).join('|')})`, 'g'), 'prefn'), ([fn]) => ({
       fn
     }));
+    /** ex. ol */
+
     const PostFunctionalNode = Node(Token(new RegExp(`(${Object.keys(FunctionalGroups).filter(group => !FunctionalGroups[group].pre).join('|')})`, 'g'), 'postfn'), ([fn]) => ({
       fn
     }));
+    /** ex. di, tri */
+
     const GreekCount = Node(Token(new RegExp(`(${GreekCounts.join('|')})`, 'g'), 'greekCount'), ([groupCount]) => ({
-      groupCount
+      count: Number(GreekCounts.indexOf(groupCount)) + 1
     }));
+    /** ex. -1,2,3- or -1,2,3,- */
+
     const LocationGroup = Node(All(Optional('-'), LocationNode, Optional(Plus(All(',', LocationNode))), Optional(','), '-'), groups => ({
       location: groups.reduce((a, b) => {
         a.push(Number(b));
         return a;
       }, [])
     }));
-    const PreFunctionalGroup = Node(All(Optional(LocationGroup), Optional(GreekCount), PreFunctionalNode), groups => ({
-      subgroup: _objectSpread({
+    /** ex. 2,3-difluoro */
+
+    const PreFunctionalGroup = Node(All(Optional(LocationGroup), Optional(GreekCount), PreFunctionalNode), groups => {
+      let subgroup = Molecule.createSubgroup([], _objectSpread({
         type: 'fngroup'
       }, groups.reduce((a, b) => {
         if (b.hasOwnProperty('location')) {
@@ -517,13 +564,19 @@ const IupacGrammar = function IupacGrammar(Token, All, Any, Plus, Optional, Node
           return a;
         }
 
-        return _objectSpread({}, a, b);
+        return _objectSpread({}, a, {}, b);
       }, {
         location: []
-      }))
-    }));
-    const PostFunctionalGroup = Node(All(Optional(LocationGroup), Optional(GreekCount), PostFunctionalNode), groups => ({
-      subgroup: _objectSpread({
+      })));
+      subgroup.unserialize(FunctionalGroups[subgroup.functionalGroup].members);
+      return {
+        subgroup
+      };
+    });
+    /** ex. -1,2-diol */
+
+    const PostFunctionalGroup = Node(All(Optional(LocationGroup), Optional(GreekCount), PostFunctionalNode), groups => {
+      let subgroup = Molecule.createSubgroup([], _objectSpread({
         type: 'fngroup'
       }, groups.reduce((a, b) => {
         if (b.hasOwnProperty('location')) {
@@ -531,42 +584,68 @@ const IupacGrammar = function IupacGrammar(Token, All, Any, Plus, Optional, Node
           return a;
         }
 
-        return _objectSpread({}, a, b);
+        return _objectSpread({}, a, {}, b);
       }, {
         location: []
-      }))
-    }));
+      })));
+      subgroup.unserialize(FunctionalGroups[subgroup.functionalGroup].members);
+      return {
+        subgroup
+      };
+    });
     const FreeChain = Node(All( // 1,2,2-trichloro-
-    Optional(Plus(PreFunctionalGroup)), // cyclo-
+    Optional(Plus(PreFunctionalGroup)), // -1,2- (can be either at start or middle)
+    Optional(LocationGroup), // cyclo-
     Optional(CyclicNode), // but-
-    PrefixNode, // -1,2-
+    PrefixNode, // -1,2- (denotes same thing as first one)
     Optional(LocationGroup), // -ane, -ene, -yne
     BondCountNode, // -1,2-diol
-    Optional(Plus(PostFunctionalGroup))), groups => _objectSpread({
-      type: 'chain'
-    }, groups.reduce((a, b) => {
-      if (b.hasOwnProperty('location')) {
-        a.location = a.location.concat(b.location);
-        return a;
-      }
+    Optional(Plus(PostFunctionalGroup))), groups => {
+      let chainProps = groups.reduce((a, b) => {
+        if (b.hasOwnProperty('location')) {
+          a.location = a.location.concat(b.location);
+          return a;
+        }
 
-      if (b.hasOwnProperty('subgroup')) {
-        a.subgroups.push(b.subgroup);
-        return a;
-      }
+        if (b.hasOwnProperty('subgroup')) {
+          a.children.push(b.subgroup);
+        }
 
-      return _objectSpread({}, a, b);
-    }, {
-      location: [],
-      subgroups: []
-    })));
+        return _objectSpread({}, a, {}, b);
+      }, {
+        location: [],
+        children: []
+      });
+      let groupCount = chainProps.children.reduce((a, b) => {
+        return a + (b.count || 1);
+      }, 0);
+      let locLength = chainProps.location.length || 1;
+      let chainCount = chainProps.prefix || 1;
+      let bondCount = chainProps.bondCount;
+      let hydrogenCount = chainCount * 2 + 2 - (bondCount - 1) * locLength * 2 - groupCount; // 2 2 0 3
+
+      let chainChildren = chainProps.children.concat([Molecule.createElement(6, {
+        count: chainProps.prefix,
+        chain: true
+      })]);
+      delete chainProps.children;
+      delete chainProps.subgroup;
+      let chain = Molecule.createSubgroup(chainChildren, _objectSpread({
+        type: 'chain'
+      }, chainProps));
+      chain.append(Molecule.createElement(1, {
+        count: hydrogenCount,
+        chain: true
+      }));
+      return chain;
+    });
     return Node(Plus(Any(FreeChain)), stack => stack);
   });
 };
 
-const IupacParser = new Parser(IupacGrammar);
-
-module.exports = text => IupacParser.parse(text);
+module.exports = function (text) {
+  return new Parser(IupacGrammar.bind(this)).parse(text);
+};
 
 /***/ }),
 /* 10 */
@@ -578,7 +657,7 @@ module.exports = ["meth","eth","prop","but","pent","hex","hept","oct","non","dec
 /* 11 */
 /***/ (function(module) {
 
-module.exports = {"fluoro":{"type":"element","element":9,"pre":true},"chloro":{"type":"element","element":17,"pre":true},"bromo":{"type":"element","element":35,"pre":true},"iodo":{"type":"element","element":53,"pre":true},"ol":{"type":"subgroup","subgroup":[{"element":8,"type":"element"},{"element":1,"type":"element"}],"pre":false}};
+module.exports = {"fluoro":{"members":[{"type":"element","element":9}],"pre":true},"chloro":{"members":[{"type":"element","element":17}],"pre":true},"bromo":{"members":[{"type":"element","element":35}],"pre":true},"iodo":{"members":[{"type":"element","element":53}],"pre":true},"ol":{"members":[{"element":8,"type":"element"},{"element":1,"type":"element"}],"pre":false},"methyl":{"members":[{"element":6,"type":"element"},{"element":1,"type":"element","count":3}],"pre":true}};
 
 /***/ }),
 /* 12 */
@@ -609,11 +688,15 @@ module.exports = Fraction;
 /* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
+
+function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
+
+function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-function _classPrivateFieldGet(receiver, privateMap) { if (!privateMap.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } var descriptor = privateMap.get(receiver); if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
+function _classPrivateFieldGet(receiver, privateMap) { var descriptor = privateMap.get(receiver); if (!descriptor) { throw new TypeError("attempted to get private field on non-instance"); } if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
 
 const AtomicToSymbol = __webpack_require__(2);
 
@@ -622,52 +705,54 @@ const AtomicToName = __webpack_require__(15);
 const AtomicToAMU = __webpack_require__(16);
 
 class Element {
-  constructor(atomicNumber, {
-    count: _count,
-    charge: _charge,
-    id,
-    molecule
-  }) {
+  constructor(atomicNumber, _ref) {
+    let count = _ref.count,
+        charge = _ref.charge,
+        id = _ref.id,
+        molecule = _ref.molecule,
+        _meta = _objectWithoutProperties(_ref, ["count", "charge", "id", "molecule"]);
+
     _state.set(this, {
       writable: true,
       value: {
         el: 1,
-        count: 1,
-        charge: 0,
         id: '',
-        molecule: null
+        molecule: null,
+        meta: {
+          count: 1,
+          charge: 0
+        }
       }
     });
 
     _defineProperty(this, "serialize", () => {
+      let meta = _objectSpread({}, _classPrivateFieldGet(this, _state).meta);
+
+      if (meta.charge === 0) delete meta.charge;
+      if (meta.count === 1) delete meta.count;
       return _objectSpread({
         type: 'element',
         element: _classPrivateFieldGet(this, _state).el,
         id: _classPrivateFieldGet(this, _state).id
-      }, _classPrivateFieldGet(this, _state).count !== 1 ? {
-        count: _classPrivateFieldGet(this, _state).count
-      } : {}, _classPrivateFieldGet(this, _state).charge !== 0 ? {
-        charge: _classPrivateFieldGet(this, _state).charge
-      } : {});
+      }, Object.keys(meta).length === 0 ? {} : meta);
     });
 
     _defineProperty(this, "type", 'element');
 
-    _defineProperty(this, "setCount", count => {
-      if (isNaN(count) || !Number.isInteger(count) || count === 0) return;
-      _classPrivateFieldGet(this, _state).count = count;
-    });
-
-    _defineProperty(this, "setCharge", charge => {
-      if (isNaN(charge) || !Number.isInteger(charge)) return;
-      _classPrivateFieldGet(this, _state).charge = charge;
+    _defineProperty(this, "set", (key, value) => {
+      if (key === 'count' && (isNaN(value) || !Number.isInteger(value) || value === 0)) return;
+      if (key === 'charge' && (isNaN(value) || !Number.isInteger(value))) return;
+      _classPrivateFieldGet(this, _state).meta = _objectSpread({}, _classPrivateFieldGet(this, _state).meta, {
+        [key]: value
+      });
     });
 
     _classPrivateFieldGet(this, _state).el = Number(atomicNumber);
-    this.setCount(_count);
-    this.setCharge(_charge);
+    this.set('count', count);
+    this.set('charge', charge);
     _classPrivateFieldGet(this, _state).id = id;
     _classPrivateFieldGet(this, _state).molecule = molecule;
+    _classPrivateFieldGet(this, _state).meta = _objectSpread({}, _classPrivateFieldGet(this, _state).meta, {}, _meta);
   }
 
   get element() {
@@ -683,15 +768,15 @@ class Element {
   }
 
   get mass() {
-    return AtomicToAMU[_classPrivateFieldGet(this, _state).el - 1] * _classPrivateFieldGet(this, _state).count;
+    return AtomicToAMU[_classPrivateFieldGet(this, _state).el - 1] * _classPrivateFieldGet(this, _state).meta.count;
   }
 
   get count() {
-    return _classPrivateFieldGet(this, _state).count;
+    return _classPrivateFieldGet(this, _state).meta.count;
   }
 
   get charge() {
-    return _classPrivateFieldGet(this, _state).charge;
+    return _classPrivateFieldGet(this, _state).meta.charge;
   }
 
   get parent() {
@@ -718,35 +803,43 @@ module.exports = ["Hydrogen","Helium","Lithium","Beryllium","Boron","Carbon","Ni
 /* 16 */
 /***/ (function(module) {
 
-module.exports = [1.008,4.003,6.941,9.012,10.811,12.011,14.007,15.999,18.998,20.18,22.99,24.305,26.982,28.086,30.974,32.065,35.453,39.948,39.098,40.078,44.956,47.867,50.942,51.996,54.938,55.845,58.933,58.693,63.546,65.39,69.723,72.64,74.922,78.96,79.904,83.8,85.468,87.62,88.906,91.224,92.906,95.94,98,101.07,102.906,106.42,107.868,112.411,114.818,118.71,121.76,127.6,126.905,131.293,132.906,137.327,138.906,140.116,140.908,144.24,145,150.36,151.964,157.25,158.925,162.5,164.93,167.259,168.934,173.04,174.967,178.49,180.948,183.84,186.207,190.23,192.217,195.078,196.967,200.59,204.383,207.2,208.98,209,210,222,223,226,227,232.038,231.036,238.029,237,244,243,247,247,251,252,257,258,259,262,261,262,266,264,277,268];
+module.exports = [1.008,4.0026,7,9.012183,10.81,12.011,14.007,15.999,18.99840316,20.18,22.9897693,24.305,26.981538,28.085,30.973762,32.07,35.45,39.9,39.098,40.08,44.95591,47.87,50.941,51.996,54.93804,55.84,58.93319,58.693,63.55,65.4,69.72,72.63,74.92159,78.97,79.9,83.8,85.468,87.6,88.9058,91.22,92.9064,96,97.90721,101.1,102.9055,106.4,107.868,112.41,114.82,118.71,121.76,127.6,126.9045,131.29,132.905452,137.33,138.9055,140.12,140.9077,144.24,144.91276,150.4,151.96,157.2,158.92535,162.5,164.93033,167.26,168.93422,173.04,174.967,178.5,180.9479,183.8,186.21,190.2,192.22,195.08,196.96657,200.59,204.383,207,208.9804,208.98243,209.98715,222.01758,223.01973,226.02541,227.02775,232.038,231.0359,238.0289,237.04817,244.0642,243.06138,247.07035,247.07031,251.07959,252.083,257.09511,258.09843,259.101,262.11,267.122,268.126,271.134,274.144,277.152,278.156,281.165,282.169,285.177,286.183,289.191,290.196,293.205,294.211,294.214];
 
 /***/ }),
 /* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
+
+function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
+
+function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-function _classPrivateFieldGet(receiver, privateMap) { if (!privateMap.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } var descriptor = privateMap.get(receiver); if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
+function _classPrivateFieldGet(receiver, privateMap) { var descriptor = privateMap.get(receiver); if (!descriptor) { throw new TypeError("attempted to get private field on non-instance"); } if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
 
 const FindById = __webpack_require__(4);
 
 class Subgroup {
-  constructor(_children, {
-    type: _type,
-    count: _count,
-    charge: _charge,
-    id: _id
-  }) {
+  constructor(_children, _ref) {
+    let _type = _ref.type,
+        count = _ref.count,
+        charge = _ref.charge,
+        _id = _ref.id,
+        molecule = _ref.molecule,
+        _meta = _objectWithoutProperties(_ref, ["type", "count", "charge", "id", "molecule"]);
+
     _state.set(this, {
       writable: true,
       value: {
         children: [],
         type: 'subgroup',
-        count: 1,
-        charge: 0,
-        id: ''
+        id: '',
+        meta: {
+          count: 1,
+          charge: 0
+        }
       }
     });
 
@@ -755,25 +848,51 @@ class Subgroup {
     _defineProperty(this, "serialize", () => {
       let children = Array.prototype.slice.call(_classPrivateFieldGet(this, _state).children);
 
+      let meta = _objectSpread({}, _classPrivateFieldGet(this, _state).meta);
+
       for (let i in children) {
         if (typeof children[i].serialize === 'function') {
           children[i] = children[i].serialize();
         }
       }
 
+      if (meta.charge === 0) delete meta.charge;
+      if (meta.count === 1) delete meta.count;
       return _objectSpread({
         type: _classPrivateFieldGet(this, _state).type,
         children,
         id: _classPrivateFieldGet(this, _state).id
-      }, _classPrivateFieldGet(this, _state).count !== 1 ? {
-        count: _classPrivateFieldGet(this, _state).count
-      } : {}, _classPrivateFieldGet(this, _state).charge !== 0 ? {
-        charge: _classPrivateFieldGet(this, _state).charge
-      } : {});
+      }, Object.keys(meta).length === 0 ? {} : meta);
+    });
+
+    _defineProperty(this, "unserialize", mol => {
+      for (let i in mol) {
+        if (mol[i].type === 'element') {
+          let elProps = _objectSpread({}, mol[i]);
+
+          delete elProps.type;
+          delete elProps.element;
+
+          let el = _classPrivateFieldGet(this, _state).molecule.createElement(mol[i].element, elProps); //test
+
+
+          this.append(el);
+        } else if (['subgroup', 'complex', 'fngroup', 'chain'].indexOf(mol[i].type) !== -1) {
+          let groupProps = _objectSpread({}, mol[i]);
+
+          delete groupProps.children;
+          delete groupProps.type;
+
+          let group = _classPrivateFieldGet(this, _state).molecule.createSubgroup([], groupProps);
+
+          group.unserialize(mol[i].children || []);
+          this.append(group);
+        }
+      }
     });
 
     _defineProperty(this, "setType", type => {
-      const types = ['subgroup', 'complex'];
+      const types = ['subgroup', 'complex', 'fngroup', 'chain'];
 
       if (types.indexOf(type) !== -1) {
         _classPrivateFieldGet(this, _state).type = type;
@@ -782,29 +901,28 @@ class Subgroup {
       }
     });
 
-    _defineProperty(this, "setCount", count => {
-      if (isNaN(count) || !Number.isInteger(count) || count === 0) return;
-      _classPrivateFieldGet(this, _state).count = count;
-    });
-
-    _defineProperty(this, "setCharge", charge => {
-      if (isNaN(charge) || !Number.isInteger(charge)) return;
-      _classPrivateFieldGet(this, _state).charge = charge;
+    _defineProperty(this, "set", (key, value) => {
+      if (key === 'count' && (isNaN(value) || !Number.isInteger(value) || value === 0)) return;
+      if (key === 'charge' && (isNaN(value) || !Number.isInteger(value))) return;
+      _classPrivateFieldGet(this, _state).meta = _objectSpread({}, _classPrivateFieldGet(this, _state).meta, {
+        [key]: value
+      });
     });
 
     _defineProperty(this, "append", item => {
-      const types = ['element', 'subgroup', 'complex'];
+      const types = ['element', 'subgroup', 'complex', 'chain', 'fngroup'];
       if (!item || types.indexOf(item.type) === -1) throw new Error('Cannot append invalid item');
 
       _classPrivateFieldGet(this, _state).children.push(item);
-
-      item.setParent(this);
     });
 
     this.setType(_type);
-    this.setCount(_count);
-    this.setCharge(_charge);
     _classPrivateFieldGet(this, _state).id = _id;
+    _classPrivateFieldGet(this, _state).molecule = molecule;
+    this.set('count', count);
+    this.set('charge', charge);
+
+    for (let i in _meta) this.set(i, _meta[i]);
 
     for (let i in _children) {
       if (Array.isArray(_children[i])) {
@@ -834,7 +952,7 @@ class Subgroup {
       ids[_classPrivateFieldGet(this, _state).children[i].id] = _classPrivateFieldGet(this, _state).id;
 
       if (_classPrivateFieldGet(this, _state).children[i].childIds) {
-        ids = _objectSpread({}, ids, _classPrivateFieldGet(this, _state).children[i].childIds);
+        ids = _objectSpread({}, ids, {}, _classPrivateFieldGet(this, _state).children[i].childIds);
       }
     }
 
@@ -842,11 +960,15 @@ class Subgroup {
   }
 
   get count() {
-    return _classPrivateFieldGet(this, _state).count;
+    return _classPrivateFieldGet(this, _state).meta.count;
   }
 
   get charge() {
-    return _classPrivateFieldGet(this, _state).charge;
+    return _classPrivateFieldGet(this, _state).meta.charge;
+  }
+
+  get functionalGroup() {
+    return _classPrivateFieldGet(this, _state).meta.fn;
   }
 
   get mass() {
@@ -856,7 +978,7 @@ class Subgroup {
       sum += _classPrivateFieldGet(this, _state).children[i].mass;
     }
 
-    return sum * _classPrivateFieldGet(this, _state).count;
+    return sum * _classPrivateFieldGet(this, _state).meta.count;
   }
 
   get parent() {

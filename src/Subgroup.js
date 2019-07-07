@@ -4,16 +4,21 @@ class Subgroup {
     #state = {
         children: [],
         type: 'subgroup',
-        count: 1,
-        charge: 0,
-        id: ''
+        id: '',
+        meta: {
+            count: 1,
+            charge: 0,
+        },
     };
 
-    constructor(children, {type, count, charge, id}) {
+    constructor(children, {type, count, charge, id, molecule, ...meta}) {
         this.setType(type);
-        this.setCount(count);
-        this.setCharge(charge);
         this.#state.id = id;
+        this.#state.molecule = molecule;
+
+        this.set('count', count);
+        this.set('charge', charge);
+        for (let i in meta) this.set(i, meta[i]);
 
         for (let i in children) {
             if (Array.isArray(children[i])) {
@@ -32,6 +37,7 @@ class Subgroup {
 
     serialize = () => {
         let children = Array.prototype.slice.call(this.#state.children);
+        let meta = {...this.#state.meta};
 
         for (let i in children) {
             if (typeof children[i].serialize === 'function') {
@@ -39,13 +45,34 @@ class Subgroup {
             }
         }
 
+        if (meta.charge === 0) delete meta.charge;
+        if (meta.count === 1) delete meta.count;
+
         return {
             type: this.#state.type,
             children,
             id: this.#state.id,
-            ...(this.#state.count !== 1 ? {count: this.#state.count} : {}),
-            ...(this.#state.charge !== 0 ? {charge: this.#state.charge} : {})
+            ...(Object.keys(meta).length === 0 ? {} : meta),
         };
+    };
+
+    unserialize = (mol) => {
+        for (let i in mol) {
+            if (mol[i].type === 'element') {
+                let elProps = {...mol[i]};
+                delete elProps.type;
+                delete elProps.element;
+                let el = this.#state.molecule.createElement(mol[i].element, elProps); //test
+                this.append(el);
+            } else if (['subgroup', 'complex', 'fngroup', 'chain'].indexOf(mol[i].type) !== -1) {
+                let groupProps = {...mol[i]};
+                delete groupProps.children;
+                delete groupProps.type;
+                let group = this.#state.molecule.createSubgroup([], groupProps);
+                group.unserialize(mol[i].children || []);
+                this.append(group);
+            }
+        }
     };
 
     get type() {
@@ -63,7 +90,7 @@ class Subgroup {
             if (this.#state.children[i].childIds) {
                 ids = {
                     ...ids,
-                    ...this.#state.children[i].childIds
+                    ...this.#state.children[i].childIds,
                 };
             }
         }
@@ -71,7 +98,7 @@ class Subgroup {
     }
 
     setType = (type) => {
-        const types = ['subgroup', 'complex'];
+        const types = ['subgroup', 'complex', 'fngroup', 'chain'];
         if (types.indexOf(type) !== -1) {
             this.#state.type = type;
         } else if (type) {
@@ -80,11 +107,15 @@ class Subgroup {
     }
 
     get count() {
-        return this.#state.count;
+        return this.#state.meta.count;
     }
 
     get charge() {
-        return this.#state.charge;
+        return this.#state.meta.charge;
+    }
+
+    get functionalGroup() {
+        return this.#state.meta.fn;
     }
 
     get mass() {
@@ -92,24 +123,23 @@ class Subgroup {
         for (let i in this.#state.children) {
             sum += this.#state.children[i].mass;
         }
-        return sum * this.#state.count;
+        return sum * this.#state.meta.count;
     }
 
-    setCount = (count) => {
-        if (isNaN(count) || !Number.isInteger(count) || count === 0) return;
-        this.#state.count = count;
-    };
+    set = (key, value) => {
+        if (key === 'count' && (isNaN(value) || !Number.isInteger(value) || value === 0)) return;
+        if (key === 'charge' && (isNaN(value) || !Number.isInteger(value))) return;
 
-    setCharge = (charge) => {
-        if (isNaN(charge) || !Number.isInteger(charge)) return;
-        this.#state.charge = charge;
+        this.#state.meta = {
+            ...this.#state.meta,
+            [key]: value,
+        };
     };
 
     append = (item) => {
-        const types = ['element', 'subgroup', 'complex'];
+        const types = ['element', 'subgroup', 'complex', 'chain', 'fngroup'];
         if (!item || types.indexOf(item.type) === -1) throw new Error('Cannot append invalid item');
         this.#state.children.push(item);
-        item.setParent(this);
     }
 
     get parent() {

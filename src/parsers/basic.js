@@ -1,5 +1,5 @@
 const Parser = require('rd-parse');
-const Y = require('./../shared/generator');
+const Y = require('./../shared/combinator');
 const ConvertToAtomic = require('./../shared/convertToAtomic');
 
 const BasicGrammar = function (Token, All, Any, Plus, Optional, Node) {
@@ -42,7 +42,7 @@ const BasicGrammar = function (Token, All, Any, Plus, Optional, Node) {
                 a = {...a, ...b};
                 return a;
             }, {
-                type: 'complex'
+                type: 'complex',
             })))
         );
 

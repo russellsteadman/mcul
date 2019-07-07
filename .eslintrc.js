@@ -13,5 +13,6 @@ module.exports = {
     },
     "parserOptions": require('./config/babel.config')(true),
     "rules": {
+        "comma-dangle": ["warn", "always-multiline"]
     }
 };

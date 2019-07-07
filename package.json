@@ -1,13 +1,13 @@
 {
   "name": "mcul",
-  "version": "0.1.0-alpha0",
+  "version": "0.1.0-alpha1",
   "description": "A molecular parsing engine",
-  "main": "index.js",
+  "main": "dist/mcul.node.js",
   "repository": "https://github.com/teamtofu/mcul",
   "homepage": "https://github.com/teamtofu/mcul",
   "author": "Russell Steadman",
   "bugs": {
-    "url": "https://github.com/teamtofu/affiliate/issues",
+    "url": "https://github.com/teamtofu/mcul/issues",
     "email": "steadman.21@osu.edu"
   },
   "keywords": [
@@ -25,6 +25,7 @@
   "private": false,
   "devDependencies": {
     "@babel/core": "^7.4.4",
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
     "@babel/plugin-proposal-object-rest-spread": "^7.4.4",
     "@babel/plugin-proposal-private-methods": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
@@ -44,9 +45,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@babel/plugin-proposal-class-properties": "^7.4.4",
-    "rd-parse": "^2.1.4",
-    "uuid": "^3.3.2"
+    "rd-parse": "^2.1.4"
   },
   "jest": {
     "clearMocks": true,

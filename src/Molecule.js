@@ -12,7 +12,7 @@ class Molecule {
     #formats = ['basic', 'iupac'];
     #state = {
         children: [],
-        idIndex: 0
+        idIndex: 0,
     };
     version = SCHEMA_VERSION;
     type = 'molecule';
@@ -35,9 +35,9 @@ class Molecule {
                 format,
                 options: {
                     ...{},
-                    ...options
-                }
-            }
+                    ...options,
+                },
+            },
         };
 
         if (fromText) this.parse();
@@ -67,24 +67,49 @@ class Molecule {
             version: SCHEMA_VERSION,
             children,
             idIndex: this.#state.idIndex,
-            ...(this.#state.rawText ? {fromText: this.#state.rawText} : {})
+            ...(this.#state.rawText ? {fromText: this.#state.rawText} : {}),
         };
-    }
+    };
+
+    unserialize = (text) => {
+        let mol = JSON.parse(text);
+        if (mol.version.split('.')[0] !== SCHEMA_VERSION.split('.')[0]) throw new Error('Incompatible version');
+
+        this.#state.idIndex = mol.idIndex;
+        this.#state.rawText = mol.fromText;
+
+        for (let i in mol.children) {
+            if (mol.children[i].type === 'element') {
+                let elProps = {...mol.children[i]};
+                delete elProps.type;
+                delete elProps.element;
+                let el = this.createElement(mol.children[i].element, elProps);
+                this.append(el);
+            } else if (['subgroup', 'complex', 'fngroup', 'chain'].indexOf(mol.children[i].type) !== -1) {
+                let groupProps = {...mol.children[i]};
+                delete groupProps.children;
+                delete groupProps.type;
+                let group = this.createSubgroup([], groupProps);
+                group.unserialize(mol.children[i].children || []);
+                this.append(group);
+            }
+        }
+    };
 
     createElement = (element, options) => (new Element(element, {
         ...options,
         molecule: this,
-        id: this.#createId()
+        id: this.#createId(),
     }));
 
     createSubgroup = (constituents, options) => (new Subgroup(constituents, {
         ...options,
         molecule: this,
-        id: this.#createId()
+        id: this.#createId(),
     }));
 
     append = (item) => {
-        const types = ['element', 'subgroup', 'complex'];
+        const types = ['element', 'subgroup', 'complex', 'fngroup', 'chain'];
         if (!item || types.indexOf(item.type) === -1) throw new Error('Cannot append invalid item');
         this.#state.children.push(item);
     }
@@ -98,7 +123,7 @@ class Molecule {
         for (let i in this.#state.children) {
             sum += this.#state.children[i].mass;
         }
-        return sum;
+        return Math.round(sum * 1000) / 1000;
     }
 
     getCounts = () => (RecursiveCount(this.#state.children));
@@ -125,7 +150,7 @@ class Molecule {
             if (this.#state.children[i].childIds) {
                 ids = {
                     ...ids,
-                    ...this.#state.children[i].childIds
+                    ...this.#state.children[i].childIds,
                 };
             }
         }

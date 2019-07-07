@@ -13,5 +13,5 @@ test("Generator has correct types", () => {
     }
   `);
   expect(instance.getCount(1)).toBe(78);
-  expect(instance.mass).toBe(809.316);
+  expect(instance.mass).toBe(809.388);
 });
