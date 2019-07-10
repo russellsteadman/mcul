@@ -87,58 +87,15 @@ module.exports =
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports) {
-
-let Types = {
-  subgroup: ['subgroup', 'complex', 'chain', 'fngroup'],
-  element: ['element']
-};
-Types.all = Types.subgroup.concat(Types.element);
-module.exports = Types;
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports) {
-
-module.exports = require("rd-parse");
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports) {
-
-module.exports = function (gen) {
-  return function (f) {
-    return f(f);
-  }(function (f) {
-    return gen(function () {
-      return f(f).apply(null, arguments);
-    });
-  });
-};
-
-/***/ }),
-/* 3 */
-/***/ (function(module) {
-
-module.exports = ["H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg","Al","Si","P","S","Cl","Ar","K","Ca","Sc","Ti","V","Cr","Mn","Fe","Co","Ni","Cu","Zn","Ga","Ge","As","Se","Br","Kr","Rb","Sr","Y","Zr","Nb","Mo","Tc","Ru","Rh","Pd","Ag","Cd","In","Sn","Sb","Te","I","Xe","Cs","Ba","La","Ce","Pr","Nd","Pm","Sm","Eu","Gd","Tb","Dy","Ho","Er","Tm","Yb","Lu","Hf","Ta","W","Re","Os","Ir","Pt","Au","Hg","Tl","Pb","Bi","Po","At","Rn","Fr","Ra","Ac","Th","Pa","U","Np","Pu","Am","Cm","Bk","Cf","Es","Fm","Md","No","Lr","Rf","Db","Sg","Bh","Hs","Mt"];
-
-/***/ }),
-/* 4 */
-/***/ (function(module) {
-
-module.exports = [1.008,4.0026,7,9.012183,10.81,12.011,14.007,15.999,18.99840316,20.18,22.9897693,24.305,26.981538,28.085,30.973762,32.07,35.45,39.9,39.098,40.08,44.95591,47.87,50.941,51.996,54.93804,55.84,58.93319,58.693,63.55,65.4,69.72,72.63,74.92159,78.97,79.9,83.8,85.468,87.6,88.9058,91.22,92.9064,96,97.90721,101.1,102.9055,106.4,107.868,112.41,114.82,118.71,121.76,127.6,126.9045,131.29,132.905452,137.33,138.9055,140.12,140.9077,144.24,144.91276,150.4,151.96,157.2,158.92535,162.5,164.93033,167.26,168.93422,173.04,174.967,178.5,180.9479,183.8,186.21,190.2,192.22,195.08,196.96657,200.59,204.383,207,208.9804,208.98243,209.98715,222.01758,223.01973,226.02541,227.02775,232.038,231.0359,238.0289,237.04817,244.0642,243.06138,247.07035,247.07031,251.07959,252.083,257.09511,258.09843,259.101,262.11,267.122,268.126,271.134,274.144,277.152,278.156,281.165,282.169,285.177,286.183,289.191,290.196,293.205,294.211,294.214];
-
-/***/ }),
-/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-const Types = __webpack_require__(0);
+const Types = __webpack_require__(1);
 
-const AtomicToAMU = __webpack_require__(4);
+const AtomicToAMU = __webpack_require__(5);
 
 const getCounts = function getCounts() {
   let counts = {};
@@ -176,6 +133,12 @@ const append = function append(item) {
   this.children.push(item);
 };
 
+const appendAll = function appendAll(items) {
+  for (let i in items) {
+    append.call(this, items[i]);
+  }
+};
+
 const findById = function findById(self, id) {
   if (id === false) return self;
   const members = this.children;
@@ -196,7 +159,7 @@ const getChildIds = function getChildIds() {
   let ids = {};
 
   for (let i in this.children) {
-    ids[this.children[i].id] = false;
+    ids[this.children[i].id] = this.children[i];
 
     if (this.children[i].childIds) {
       ids = _objectSpread({}, ids, {}, this.children[i].childIds);
@@ -204,6 +167,22 @@ const getChildIds = function getChildIds() {
   }
 
   return ids;
+};
+
+const getParent = function getParent() {
+  const childIds = this.molecule.childIds;
+
+  for (let i in childIds) {
+    if (childIds[i].children) {
+      for (let o in childIds[i].children) {
+        if (childIds[i].children[o].id === this.id) {
+          return childIds[i];
+        }
+      }
+    }
+  }
+
+  return this.molecule;
 };
 
 const getElementFraction = function getElementFraction(element) {
@@ -227,11 +206,56 @@ module.exports = {
   getCounts,
   getMass,
   append,
+  appendAll,
   findById,
   getChildIds,
+  getParent,
   getElementFraction,
   getMassFraction
 };
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports) {
+
+let Types = {
+  subgroup: ['subgroup', 'complex', 'chain', 'fngroup'],
+  element: ['element']
+};
+Types.all = Types.subgroup.concat(Types.element);
+module.exports = Types;
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports) {
+
+module.exports = require("rd-parse");
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports) {
+
+module.exports = function (gen) {
+  return function (f) {
+    return f(f);
+  }(function (f) {
+    return gen(function () {
+      return f(f).apply(null, arguments);
+    });
+  });
+};
+
+/***/ }),
+/* 4 */
+/***/ (function(module) {
+
+module.exports = ["H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg","Al","Si","P","S","Cl","Ar","K","Ca","Sc","Ti","V","Cr","Mn","Fe","Co","Ni","Cu","Zn","Ga","Ge","As","Se","Br","Kr","Rb","Sr","Y","Zr","Nb","Mo","Tc","Ru","Rh","Pd","Ag","Cd","In","Sn","Sb","Te","I","Xe","Cs","Ba","La","Ce","Pr","Nd","Pm","Sm","Eu","Gd","Tb","Dy","Ho","Er","Tm","Yb","Lu","Hf","Ta","W","Re","Os","Ir","Pt","Au","Hg","Tl","Pb","Bi","Po","At","Rn","Fr","Ra","Ac","Th","Pa","U","Np","Pu","Am","Cm","Bk","Cf","Es","Fm","Md","No","Lr","Rf","Db","Sg","Bh","Hs","Mt"];
+
+/***/ }),
+/* 5 */
+/***/ (function(module) {
+
+module.exports = [1.008,4.0026,7,9.012183,10.81,12.011,14.007,15.999,18.99840316,20.18,22.9897693,24.305,26.981538,28.085,30.973762,32.07,35.45,39.9,39.098,40.08,44.95591,47.87,50.941,51.996,54.93804,55.84,58.93319,58.693,63.55,65.4,69.72,72.63,74.92159,78.97,79.9,83.8,85.468,87.6,88.9058,91.22,92.9064,96,97.90721,101.1,102.9055,106.4,107.868,112.41,114.82,118.71,121.76,127.6,126.9045,131.29,132.905452,137.33,138.9055,140.12,140.9077,144.24,144.91276,150.4,151.96,157.2,158.92535,162.5,164.93033,167.26,168.93422,173.04,174.967,178.5,180.9479,183.8,186.21,190.2,192.22,195.08,196.96657,200.59,204.383,207,208.9804,208.98243,209.98715,222.01758,223.01973,226.02541,227.02775,232.038,231.0359,238.0289,237.04817,244.0642,243.06138,247.07035,247.07031,251.07959,252.083,257.09511,258.09843,259.101,262.11,267.122,268.126,271.134,274.144,277.152,278.156,281.165,282.169,285.177,286.183,289.191,290.196,293.205,294.211,294.214];
 
 /***/ }),
 /* 6 */
@@ -315,9 +339,9 @@ const Element = __webpack_require__(14);
 
 const Subgroup = __webpack_require__(16);
 
-const Collection = __webpack_require__(5);
+const Collection = __webpack_require__(0);
 
-const Types = __webpack_require__(0);
+const Types = __webpack_require__(1);
 
 const SCHEMA_VERSION = '0.1.0';
 
@@ -334,7 +358,8 @@ class Molecule {
         type: 'molecule',
         children: [],
         idIndex: 0,
-        formats: ['basic', 'iupac']
+        formats: ['basic', 'iupac'],
+        bonds: {}
       }
     });
 
@@ -361,17 +386,18 @@ class Molecule {
         type: 'molecule',
         version: SCHEMA_VERSION,
         children,
+        bonds: _classPrivateFieldGet(this, _state).bonds,
         idIndex: _classPrivateFieldGet(this, _state).idIndex
       }, _classPrivateFieldGet(this, _state).rawText ? {
         fromText: _classPrivateFieldGet(this, _state).rawText
       } : {});
     });
 
-    _defineProperty(this, "unserialize", text => {
-      let mol = JSON.parse(text);
+    _defineProperty(this, "unserialize", mol => {
       if (mol.version.split('.')[0] !== SCHEMA_VERSION.split('.')[0]) throw new Error('Incompatible version');
       _classPrivateFieldGet(this, _state).idIndex = mol.idIndex;
       _classPrivateFieldGet(this, _state).rawText = mol.fromText;
+      _classPrivateFieldGet(this, _state).bonds = mol.bonds;
 
       for (let i in mol.children) {
         if (mol.children[i].type === Types.element[0]) {
@@ -398,12 +424,84 @@ class Molecule {
       id: _classPrivateFieldGet(this, _createId).call(this)
     })));
 
+    _defineProperty(this, "createElements", (element, options) => {
+      let count = options.count,
+          bond = options.bond;
+      count = count || 1;
+      delete options.count;
+      delete options.bond;
+      let el = [];
+
+      for (let i = 0; i < count; i += 1) {
+        el.push(this.createElement(element, options));
+        if (bond && i !== 0) this.createBond(el[i], el[i - 1], bond);
+      }
+
+      return el;
+    });
+
     _defineProperty(this, "createSubgroup", (constituents, options) => new Subgroup(constituents, _objectSpread({}, options, {
       molecule: this,
       id: _classPrivateFieldGet(this, _createId).call(this)
     })));
 
+    _defineProperty(this, "createSubgroups", options => {
+      let count = options.count;
+      count = count || 1;
+      delete options.count;
+      let sg = [];
+
+      for (let i = 0; i < count; i += 1) {
+        sg.push(this.createSubgroup([], options));
+      }
+
+      return sg;
+    });
+
+    _defineProperty(this, "createBond", (one, two, options) => {
+      if (!one || !two) throw new Error('Missing bonding elements');
+      let bondId = (one.id || one) + '-' + (two.id || two);
+      let bondMirror = (two.id || two) + '-' + (one.id || one);
+      options = _objectSpread({
+        bondCount: 1
+      }, options);
+      _classPrivateFieldGet(this, _state).bonds[bondId] = options;
+      _classPrivateFieldGet(this, _state).bonds[bondMirror] = bondId;
+    });
+
+    _defineProperty(this, "removeBond", (one, two) => {
+      let bondId = (one.id || one) + '-' + (two.id || two);
+      let bondMirror = (two.id || two) + '-' + (one.id || one);
+      delete _classPrivateFieldGet(this, _state).bonds[bondId];
+      delete _classPrivateFieldGet(this, _state).bonds[bondMirror];
+    });
+
+    _defineProperty(this, "getBond", (one, two) => {
+      let bondId = (one.id || one) + '-' + (two.id || two);
+
+      if (!_classPrivateFieldGet(this, _state).bonds[bondId]) {
+        return null;
+      } else if (typeof _classPrivateFieldGet(this, _state).bonds[bondId] === 'string') {
+        return _classPrivateFieldGet(this, _state).bonds[_classPrivateFieldGet(this, _state).bonds[bondId]];
+      } else {
+        return _classPrivateFieldGet(this, _state).bonds[bondId];
+      }
+    });
+
+    _defineProperty(this, "getBonds", one => {
+      let bondPart = one.id || one;
+      let bonds = [];
+
+      for (let i in _classPrivateFieldGet(this, _state).bonds) {
+        if (i.split('-')[0] === bondPart) bonds.push(i);
+      }
+
+      return bonds;
+    });
+
     _defineProperty(this, "append", Collection.append.bind(_classPrivateFieldGet(this, _state)));
+
+    _defineProperty(this, "appendAll", Collection.appendAll.bind(_classPrivateFieldGet(this, _state)));
 
     _defineProperty(this, "getElementFraction", Collection.getElementFraction.bind(_classPrivateFieldGet(this, _state)));
 
@@ -417,7 +515,7 @@ class Molecule {
       if (format === _classPrivateFieldGet(this, _state).formats[0]) {
         _classPrivateFieldGet(this, _state).children = Basic.call(this, rawText);
       } else if (format === _classPrivateFieldGet(this, _state).formats[1]) {
-        _classPrivateFieldGet(this, _state).children = Iupac.call(this, rawText);
+        Iupac.call(this, rawText);
       } else if (typeof _classPrivateFieldGet(this, _state).options.parsers[format] === 'function') {
         _classPrivateFieldGet(this, _state).children = _classPrivateFieldGet(this, _state).options.parsers[format].call(this, rawText);
       } else {
@@ -485,9 +583,9 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-const Parser = __webpack_require__(1);
+const Parser = __webpack_require__(2);
 
-const Y = __webpack_require__(2);
+const Y = __webpack_require__(3);
 
 const ConvertToAtomic = __webpack_require__(9);
 
@@ -506,20 +604,38 @@ const BasicGrammar = function BasicGrammar(Token, All, Any, Plus, Optional, Node
       count: Number(count)
     } : {});
     const Suffix = Node(Any(All(Optional('_'), CountNode, ChargeNode), All(ChargeNode, '_', CountNode), ChargeNode, All(Optional('_'), CountNode)), stack => stack || []);
-    const ParentheticalGroup = Node(All('(', ThisGrammar, ')', Optional(Suffix)), ([subgroup, suffix]) => Molecule.createSubgroup(subgroup, (suffix || []).reduce((a, b) => {
-      a = _objectSpread({}, a, {}, b);
-      return a;
-    }, {})));
-    const ComplexGroup = Node(All('[', ThisGrammar, ']', Optional(Suffix)), ([subgroup, suffix]) => Molecule.createSubgroup(subgroup, (suffix || []).reduce((a, b) => {
-      a = _objectSpread({}, a, {}, b);
-      return a;
-    }, {
-      type: 'complex'
-    })));
-    const FreeElement = Node(All(ElementToken, Optional(Suffix)), ([symbol, suffix]) => Molecule.createElement(ConvertToAtomic(symbol), (suffix || []).reduce((a, b) => {
-      a = _objectSpread({}, a, {}, b);
-      return a;
-    }, {})));
+    const ParentheticalGroup = Node(All('(', ThisGrammar, ')', Optional(Suffix)), ([subgroup, suffix]) => {
+      let opts = {};
+      suffix = suffix || [];
+
+      for (let i in suffix) {
+        opts = _objectSpread({}, opts, {}, suffix[i]);
+      }
+
+      return Molecule.createSubgroup(subgroup, opts);
+    });
+    const ComplexGroup = Node(All('[', ThisGrammar, ']', Optional(Suffix)), ([subgroup, suffix]) => {
+      let opts = {
+        type: 'complex'
+      };
+      suffix = suffix || [];
+
+      for (let i in suffix) {
+        opts = _objectSpread({}, opts, {}, suffix[i]);
+      }
+
+      return Molecule.createSubgroup(subgroup, opts);
+    });
+    const FreeElement = Node(All(ElementToken, Optional(Suffix)), ([symbol, suffix]) => {
+      let opts = {};
+      suffix = suffix || [];
+
+      for (let i in suffix) {
+        opts = _objectSpread({}, opts, {}, suffix[i]);
+      }
+
+      return Molecule.createElement(ConvertToAtomic(symbol), opts);
+    });
     return Node(Plus(Any(FreeElement, ParentheticalGroup, ComplexGroup)), stack => stack);
   });
 };
@@ -532,12 +648,13 @@ module.exports = function (text) {
 /* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const AtomicToSymbol = __webpack_require__(3);
+const AtomicToSymbol = __webpack_require__(4);
 
-const SymbolToAtomic = AtomicToSymbol.reduce((a, b, c) => {
-  a[b] = Number(c) + 1;
-  return a;
-}, {});
+const SymbolToAtomic = {};
+
+for (let i in AtomicToSymbol) {
+  SymbolToAtomic[AtomicToSymbol[i]] = Number(i) + 1;
+}
 
 module.exports = symbol => {
   if (SymbolToAtomic.hasOwnProperty(symbol)) return SymbolToAtomic[symbol];
@@ -552,9 +669,9 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-const Parser = __webpack_require__(1);
+const Parser = __webpack_require__(2);
 
-const Y = __webpack_require__(2);
+const Y = __webpack_require__(3);
 
 const HydrocarbonPrefix = __webpack_require__(11);
 
@@ -609,52 +726,51 @@ const IupacGrammar = function IupacGrammar(Token, All, Any, Plus, Optional, Node
     }));
     /** ex. -1,2,3- or -1,2,3,- */
 
-    const LocationGroup = Node(All(Optional('-'), LocationNode, Optional(Plus(All(',', LocationNode))), Optional(','), '-'), groups => ({
-      location: groups.reduce((a, b) => {
-        a.push(Number(b));
-        return a;
-      }, [])
-    }));
+    const LocationGroup = Node(All(Optional('-'), LocationNode, Optional(Plus(All(',', LocationNode))), Optional(','), '-'), location => {
+      for (let i in location) location[i] = Number(location[i]);
+
+      return {
+        location
+      };
+    });
+
+    const FunctionalHandler = groups => {
+      let options = {
+        type: 'fngroup',
+        location: []
+      };
+
+      for (let i in groups) {
+        if (groups[i].hasOwnProperty('location')) {
+          options.location = options.location.concat(groups[i].location);
+          continue;
+        }
+
+        options = _objectSpread({}, options, {}, groups[i]);
+      }
+
+      while (options.location.length < (options.count || 1)) options.location.push(-1);
+
+      let fngroups = [];
+
+      for (let i in options.location) {
+        fngroups.push(_objectSpread({}, options, {
+          location: options.location[i],
+          count: 1
+        }));
+      }
+
+      return {
+        fngroups
+      };
+    };
     /** ex. 2,3-difluoro */
 
-    const PreFunctionalGroup = Node(All(Optional(LocationGroup), Optional(GreekCount), PreFunctionalNode), groups => {
-      let subgroup = Molecule.createSubgroup([], _objectSpread({
-        type: 'fngroup'
-      }, groups.reduce((a, b) => {
-        if (b.hasOwnProperty('location')) {
-          a.location = a.location.concat(b.location);
-          return a;
-        }
 
-        return _objectSpread({}, a, {}, b);
-      }, {
-        location: []
-      })));
-      subgroup.unserialize(FunctionalGroups[subgroup.functionalGroup].members);
-      return {
-        subgroup
-      };
-    });
+    const PreFunctionalGroup = Node(All(Optional(LocationGroup), Optional(GreekCount), PreFunctionalNode), FunctionalHandler);
     /** ex. -1,2-diol */
 
-    const PostFunctionalGroup = Node(All(Optional(LocationGroup), Optional(GreekCount), PostFunctionalNode), groups => {
-      let subgroup = Molecule.createSubgroup([], _objectSpread({
-        type: 'fngroup'
-      }, groups.reduce((a, b) => {
-        if (b.hasOwnProperty('location')) {
-          a.location = a.location.concat(b.location);
-          return a;
-        }
-
-        return _objectSpread({}, a, {}, b);
-      }, {
-        location: []
-      })));
-      subgroup.unserialize(FunctionalGroups[subgroup.functionalGroup].members);
-      return {
-        subgroup
-      };
-    });
+    const PostFunctionalGroup = Node(All(Optional(LocationGroup), Optional(GreekCount), PostFunctionalNode), FunctionalHandler);
     const FreeChain = Node(All( // 1,2,2-trichloro-
     Optional(Plus(PreFunctionalGroup)), // -1,2- (can be either at start or middle)
     Optional(LocationGroup), // cyclo-
@@ -664,41 +780,115 @@ const IupacGrammar = function IupacGrammar(Token, All, Any, Plus, Optional, Node
     BondCountNode, // -1,2-diol
     Optional(Plus(PostFunctionalGroup)), // acid
     Optional(AcidNode)), groups => {
-      let chainProps = groups.reduce((a, b) => {
-        if (b.hasOwnProperty('location')) {
-          a.location = a.location.concat(b.location);
-          return a;
-        }
-
-        if (b.hasOwnProperty('subgroup')) {
-          a.children.push(b.subgroup);
-        }
-
-        return _objectSpread({}, a, {}, b);
-      }, {
+      // All props
+      let chainProps = {
         location: [],
         children: []
-      });
-      let groupCount = chainProps.children.reduce((a, b) => {
-        return a + (b.count || 1);
-      }, 0);
-      let locLength = chainProps.location.length || 1;
-      let chainCount = chainProps.prefix || 1;
-      let bondCount = chainProps.bondCount;
-      let hydrogenCount = chainCount * 2 + 2 - (bondCount - 1) * locLength * 2 - groupCount;
-      let chainChildren = chainProps.children.concat([Molecule.createElement(6, {
+      };
+
+      for (let i in groups) {
+        if (groups[i].hasOwnProperty('fngroups')) {
+          chainProps.children = chainProps.children.concat(groups[i].fngroups);
+          continue;
+        }
+
+        chainProps = _objectSpread({}, chainProps, {}, groups[i]);
+      } // Generate carbons in main chain
+
+
+      let carbons = Molecule.createElements(6, {
         count: chainProps.prefix,
-        chain: true
-      })]);
-      delete chainProps.children;
-      delete chainProps.subgroup;
+        chain: true,
+        bond: {
+          bondCount: 1
+        }
+      });
+      let carbonIds = [];
+
+      for (let i in carbons) carbonIds.push(carbons[i].id); // Generate child functional groups
+
+
+      let chainChildren = carbons.slice();
+      let implicitChildren = [];
+
+      for (let i in chainProps.children) {
+        let location = chainProps.children[i].location;
+        delete chainProps.children[i].location;
+        let group = Molecule.createSubgroup([], chainProps.children[i]);
+        group.unserialize(FunctionalGroups[chainProps.children[i].fn].members);
+
+        if (location === -1) {
+          implicitChildren.push(group);
+        } else {
+          for (let o in group.children) {
+            let bond = (FunctionalGroups[chainProps.children[i].fn].bonds || [])[o] || {};
+            Molecule.createBond(carbonIds[location - 1], group.children[o].id, bond);
+          }
+        }
+
+        chainChildren.push(group);
+      }
+
+      delete chainProps.children; // Generate the main chain group
+
       let chain = Molecule.createSubgroup(chainChildren, _objectSpread({
         type: 'chain'
-      }, chainProps));
-      chain.append(Molecule.createElement(1, {
-        count: hydrogenCount,
-        chain: true
-      }));
+      }, chainProps)); // ethene, ethyne, propene, propyne can be implicitly at location 1
+
+      if (chainProps.bondCount !== 1 && chainProps.location.length === 0 && (chainProps.prefix === 2 || chainProps.prefix === 3)) chainProps.location.push(1); // Change bond counts for main chain
+
+      for (let i in chainProps.location) {
+        Molecule.createBond(carbonIds[chainProps.location[i]], carbonIds[chainProps.location[i] - 1], {
+          bondCount: chainProps.bondCount || 1
+        });
+      } // Append the chain
+
+
+      Molecule.append(chain); // Fix implicitly bonded functional groups (e.g. trichloroethene)
+
+      for (let i in carbons) {
+        if (!implicitChildren[0]) break;
+        let bondCount = 0;
+        let bonds = Molecule.getBonds(carbons[i]);
+
+        for (let o in bonds) {
+          let bond = Molecule.getBond(carbons[i], bonds[o].split('-')[1]);
+          bondCount += bond.bondCount;
+        }
+
+        for (let o = bondCount; o < 4; o += 1) {
+          if (!implicitChildren[0]) break;
+
+          for (let u in implicitChildren[0].children) {
+            let bond = (FunctionalGroups[implicitChildren[0].functionalGroup].bonds || [])[u] || {};
+            Molecule.createBond(carbons[i], implicitChildren[0].children[u], bond);
+          }
+
+          implicitChildren = implicitChildren.slice(1);
+        }
+      } // Dynamically add and bond hydrogens to carbon
+
+
+      const flat = Molecule.childIds;
+
+      for (let i in flat) {
+        if (flat[i].element === 6) {
+          let bondCount = 0;
+          let bonds = Molecule.getBonds(flat[i]);
+
+          for (let o in bonds) {
+            let bond = Molecule.getBond(i, bonds[o].split('-')[1]);
+            bondCount += bond.bondCount;
+          }
+
+          for (let o = bondCount; o < 4; o += 1) {
+            let el = Molecule.createElement(1);
+            flat[i].parent.append(el);
+            Molecule.createBond(flat[i], el);
+          }
+        }
+      }
+
       return chain;
     });
     return Node(Plus(Any(FreeChain)), stack => stack);
@@ -719,7 +909,7 @@ module.exports = ["meth","eth","prop","but","pent","hex","hept","oct","non","dec
 /* 12 */
 /***/ (function(module) {
 
-module.exports = {"fluoro":{"members":[{"type":"element","element":9}],"pre":true},"chloro":{"members":[{"type":"element","element":17}],"pre":true},"bromo":{"members":[{"type":"element","element":35}],"pre":true},"iodo":{"members":[{"type":"element","element":53}],"pre":true},"ol":{"members":[{"element":8,"type":"element"},{"element":1,"type":"element"}],"pre":false},"methyl":{"members":[{"element":6,"type":"element"},{"element":1,"type":"element","count":3}],"pre":true}};
+module.exports = {"fluoro":{"members":[{"type":"element","element":9}],"pre":true},"chloro":{"members":[{"type":"element","element":17}],"pre":true},"bromo":{"members":[{"type":"element","element":35}],"pre":true},"iodo":{"members":[{"type":"element","element":53}],"pre":true},"ol":{"members":[{"element":8,"type":"element"},{"element":1,"type":"element"}],"pre":false},"hydroxy":{"members":[{"element":8,"type":"element"},{"element":1,"type":"element"}],"pre":true},"one":{"members":[{"element":8,"type":"element"}],"bondCount":2,"pre":false},"oxo":{"members":[{"element":8,"type":"element"}],"bondCount":2,"pre":true},"methyl":{"members":[{"element":6,"type":"element"}],"pre":true}};
 
 /***/ }),
 /* 13 */
@@ -741,11 +931,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 function _classPrivateFieldGet(receiver, privateMap) { var descriptor = privateMap.get(receiver); if (!descriptor) { throw new TypeError("attempted to get private field on non-instance"); } if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
 
-const AtomicToSymbol = __webpack_require__(3);
+const AtomicToSymbol = __webpack_require__(4);
 
 const AtomicToName = __webpack_require__(15);
 
-const AtomicToAMU = __webpack_require__(4);
+const AtomicToAMU = __webpack_require__(5);
+
+const Collection = __webpack_require__(0);
 
 class Element {
   constructor(atomicNumber, _ref) {
@@ -823,7 +1015,7 @@ class Element {
   }
 
   get parent() {
-    return _classPrivateFieldGet(this, _state).molecule.findById(_classPrivateFieldGet(this, _state).molecule.childIds[_classPrivateFieldGet(this, _state).id]);
+    return Collection.getParent.call(_classPrivateFieldGet(this, _state));
   }
 
   get id() {
@@ -856,9 +1048,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 function _classPrivateFieldGet(receiver, privateMap) { var descriptor = privateMap.get(receiver); if (!descriptor) { throw new TypeError("attempted to get private field on non-instance"); } if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
 
-const Collection = __webpack_require__(5);
+const Collection = __webpack_require__(0);
 
-const Types = __webpack_require__(0);
+const Types = __webpack_require__(1);
 
 class Subgroup {
   constructor(_children, _ref) {
@@ -948,6 +1140,8 @@ class Subgroup {
 
     _defineProperty(this, "append", Collection.append.bind(_classPrivateFieldGet(this, _state)));
 
+    _defineProperty(this, "appendAll", Collection.appendAll.bind(_classPrivateFieldGet(this, _state)));
+
     this.setType(_type);
     _classPrivateFieldGet(this, _state).id = id;
     _classPrivateFieldGet(this, _state).molecule = molecule;
@@ -1002,7 +1196,7 @@ class Subgroup {
   }
 
   get parent() {
-    return _classPrivateFieldGet(this, _state).molecule.findById(_classPrivateFieldGet(this, _state).molecule.childIds[_classPrivateFieldGet(this, _state).id]);
+    return Collection.getParent.call(_classPrivateFieldGet(this, _state));
   }
 
 }

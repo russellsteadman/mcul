@@ -13,6 +13,7 @@ class Molecule {
         children: [],
         idIndex: 0,
         formats: ['basic', 'iupac'],
+        bonds: {},
     };
 
     constructor({rawText, format, parent, ...options}) {
@@ -62,6 +63,7 @@ class Molecule {
             type: 'molecule',
             version: SCHEMA_VERSION,
             children,
+            bonds: this.#state.bonds,
             idIndex: this.#state.idIndex,
             ...(this.#state.rawText ? {fromText: this.#state.rawText} : {}),
         };
@@ -72,6 +74,7 @@ class Molecule {
 
         this.#state.idIndex = mol.idIndex;
         this.#state.rawText = mol.fromText;
+        this.#state.bonds = mol.bonds;
 
         for (let i in mol.children) {
             if (mol.children[i].type === Types.element[0]) {
@@ -97,13 +100,83 @@ class Molecule {
         id: this.#createId(),
     }));
 
+    createElements = (element, options) => {
+        let { count, bond } = options;
+        count = count || 1;
+        delete options.count;
+        delete options.bond;
+
+        let el = [];
+
+        for (let i = 0; i < count; i += 1) {
+            el.push(this.createElement(element, options));
+            if (bond && i !== 0) this.createBond(el[i], el[i - 1], bond);
+        }
+
+        return el;
+    };
+
     createSubgroup = (constituents, options) => (new Subgroup(constituents, {
         ...options,
         molecule: this,
         id: this.#createId(),
     }));
 
+    createSubgroups = (options) => {
+        let { count } = options;
+        count = count || 1;
+        delete options.count;
+
+        let sg = [];
+
+        for (let i = 0; i < count; i += 1) {
+            sg.push(this.createSubgroup([], options));
+        }
+
+        return sg;
+    };
+
+    createBond = (one, two, options) => {
+        if (!one || !two) throw new Error('Missing bonding elements');
+        let bondId = (one.id || one) + '-' + (two.id || two);
+        let bondMirror = (two.id || two) + '-' + (one.id || one);
+        options = {
+            bondCount: 1,
+            ...options,
+        };
+        this.#state.bonds[bondId] = options;
+        this.#state.bonds[bondMirror] = bondId;
+    };
+
+    removeBond = (one, two) => {
+        let bondId = (one.id || one) + '-' + (two.id || two);
+        let bondMirror = (two.id || two) + '-' + (one.id || one);
+        delete this.#state.bonds[bondId];
+        delete this.#state.bonds[bondMirror];
+    };
+    
+    getBond = (one, two) => {
+        let bondId = (one.id || one) + '-' + (two.id || two);
+        if (!this.#state.bonds[bondId]) {
+            return null;
+        } else if (typeof this.#state.bonds[bondId] === 'string') {
+            return this.#state.bonds[this.#state.bonds[bondId]];
+        } else {
+            return this.#state.bonds[bondId];
+        }
+    };
+
+    getBonds = (one) => {
+        let bondPart = (one.id || one);
+        let bonds = [];
+        for (let i in this.#state.bonds) {
+            if (i.split('-')[0] === bondPart) bonds.push(i);
+        }
+        return bonds;
+    };
+
     append = Collection.append.bind(this.#state);
+    appendAll = Collection.appendAll.bind(this.#state);
 
     get children() {
         return Array.prototype.slice.call(this.#state.children);
@@ -137,7 +210,7 @@ class Molecule {
         if (format === this.#state.formats[0]) {
             this.#state.children = Basic.call(this, rawText);
         } else if (format === this.#state.formats[1]) {
-            this.#state.children = Iupac.call(this, rawText);
+            Iupac.call(this, rawText);
         } else if (typeof this.#state.options.parsers[format] === 'function') {
             this.#state.children = this.#state.options.parsers[format].call(this, rawText);
         } else {

@@ -48,16 +48,44 @@
         ],
         "pre": false
     },
+    "hydroxy": {
+        "members": [
+            {
+                "element": 8,
+                "type": "element"
+            },
+            {
+                "element": 1,
+                "type": "element"
+            }
+        ],
+        "pre": true
+    },
+    "one": {
+        "members": [
+            {
+                "element": 8,
+                "type": "element"
+            }
+        ],
+        "bondCount": 2,
+        "pre": false
+    },
+    "oxo": {
+        "members": [
+            {
+                "element": 8,
+                "type": "element"
+            }
+        ],
+        "bondCount": 2,
+        "pre": true
+    },
     "methyl": {
         "members": [
             {
                 "element": 6,
                 "type": "element"
-            },
-            {
-                "element": 1,
-                "type": "element",
-                "count": 3
             }
         ],
         "pre": true

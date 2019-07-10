@@ -34,23 +34,22 @@ const append = function (item) {
     this.children.push(item);
 };
 
+const appendAll = function (items) {
+    for (let i in items) {
+        append.call(this, items[i]);
+    }
+};
+
 const findById = function (self, id) {
     if (id === false) return self;
-    const members = this.children;
-    for (let i in members) {
-        if (members[i].id === id) return members[i];
-        if (typeof members[i].findById === 'function') {
-            let subsearch = members[i].findById(id);
-            if (subsearch) return subsearch;
-        }
-    }
-    return null;
+    const childIds = getChildIds.call(this);
+    return childIds[id] || null;
 };
 
 const getChildIds = function () {
     let ids = {};
     for (let i in this.children) {
-        ids[this.children[i].id] = false;
+        ids[this.children[i].id] = this.children[i];
         if (this.children[i].childIds) {
             ids = {
                 ...ids,
@@ -60,6 +59,20 @@ const getChildIds = function () {
     }
     return ids;
 };
+
+const getParent = function () {
+    const { childIds } = this.molecule;
+    for (let i in childIds) {
+        if (childIds[i].children) {
+            for (let o in childIds[i].children) {
+                if (childIds[i].children[o].id === this.id) {
+                    return childIds[i];
+                }
+            }
+        }
+    }
+    return this.molecule;
+}
 
 const getElementFraction = function (element) {
     const counts = getCounts.call(this);
@@ -82,8 +95,10 @@ module.exports = {
     getCounts,
     getMass,
     append,
+    appendAll,
     findById,
     getChildIds,
+    getParent,
     getElementFraction,
     getMassFraction,
 };

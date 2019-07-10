@@ -127,9 +127,10 @@ class Subgroup {
     };
 
     append = Collection.append.bind(this.#state);
+    appendAll = Collection.appendAll.bind(this.#state);
 
     get parent() {
-        return this.#state.molecule.findById(this.#state.molecule.childIds[this.#state.id]);
+        return Collection.getParent.call(this.#state);
     }
 }
 

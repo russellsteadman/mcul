@@ -1,9 +1,10 @@
 const AtomicToSymbol = require('./../maps/atomicToSymbol.json');
 
-const SymbolToAtomic = AtomicToSymbol.reduce((a, b, c) => {
-    a[b] = Number(c) + 1;
-    return a;
-}, {});
+const SymbolToAtomic = {};
+
+for (let i in AtomicToSymbol) {
+    SymbolToAtomic[AtomicToSymbol[i]] = Number(i) + 1;
+}
 
 module.exports = (symbol) => {
     if (SymbolToAtomic.hasOwnProperty(symbol)) return SymbolToAtomic[symbol];

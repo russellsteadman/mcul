@@ -1,6 +1,7 @@
 const AtomicToSymbol = require('./maps/atomicToSymbol.json');
 const AtomicToName = require('./maps/atomicToName.json');
 const AtomicToAMU = require('./maps/atomicToAMU.json');
+const Collection = require('./shared/Collection');
 
 class Element {
     #state = {
@@ -75,7 +76,7 @@ class Element {
     };
 
     get parent() {
-        return this.#state.molecule.findById(this.#state.molecule.childIds[this.#state.id]);
+        return Collection.getParent.call(this.#state);
     }
 
     get id() {

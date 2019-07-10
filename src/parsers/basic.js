@@ -30,28 +30,40 @@ const BasicGrammar = function (Token, All, Any, Plus, Optional, Node) {
 
         const ParentheticalGroup = Node(
             All('(', ThisGrammar, ')', Optional(Suffix)),
-            ([subgroup, suffix]) => (Molecule.createSubgroup(subgroup, (suffix || []).reduce((a, b) => {
-                a = {...a, ...b};
-                return a;
-            }, {})))
+            ([subgroup, suffix]) => {
+                let opts = {};
+                suffix = suffix || [];
+                for (let i in suffix) {
+                    opts = {...opts, ...suffix[i]};
+                }
+                return Molecule.createSubgroup(subgroup, opts);
+            }
         );
 
         const ComplexGroup = Node(
             All('[', ThisGrammar, ']', Optional(Suffix)),
-            ([subgroup, suffix]) => (Molecule.createSubgroup(subgroup, (suffix || []).reduce((a, b) => {
-                a = {...a, ...b};
-                return a;
-            }, {
-                type: 'complex',
-            })))
+            ([subgroup, suffix]) => {
+                let opts = {
+                    type: 'complex',
+                };
+                suffix = suffix || [];
+                for (let i in suffix) {
+                    opts = {...opts, ...suffix[i]};
+                }
+                return Molecule.createSubgroup(subgroup, opts);
+            }
         );
 
         const FreeElement = Node(
             All(ElementToken, Optional(Suffix)),
-            ([symbol, suffix]) => (Molecule.createElement(ConvertToAtomic(symbol), (suffix || []).reduce((a, b) => {
-                a = {...a, ...b};
-                return a;
-            }, {})))
+            ([symbol, suffix]) => {
+                let opts = {};
+                suffix = suffix || [];
+                for (let i in suffix) {
+                    opts = {...opts, ...suffix[i]};
+                }
+                return Molecule.createElement(ConvertToAtomic(symbol), opts);
+            }
         );
 
         return Node(Plus(Any(FreeElement, ParentheticalGroup, ComplexGroup)), stack => stack);

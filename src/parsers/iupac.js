@@ -42,44 +42,44 @@ const IupacGrammar = function (Token, All, Any, Plus, Optional, Node) {
         }));
 
         /** ex. -1,2,3- or -1,2,3,- */
-        const LocationGroup = Node(All(Optional('-'), LocationNode, Optional(Plus(All(',', LocationNode))), Optional(','), '-'), (groups) => ({
-            location: groups.reduce((a, b) => {
-                a.push(Number(b));
-                return a;
-            }, []),
-        }));
+        const LocationGroup = Node(All(Optional('-'), LocationNode, Optional(Plus(All(',', LocationNode))), Optional(','), '-'), (location) => {
+            for (let i in location) location[i] = Number(location[i]);
+            return { location };
+        });
+
+        const FunctionalHandler = (groups) => {
+            let options = {
+                type: 'fngroup',
+                location: [],
+            };
+
+            for (let i in groups) {
+                if (groups[i].hasOwnProperty('location')) {
+                    options.location = options.location.concat(groups[i].location);
+                    continue;
+                }
+                options = {...options, ...groups[i]};
+            }
+
+            while (options.location.length < (options.count || 1)) options.location.push(-1);
+
+            let fngroups = [];
+            for (let i in options.location) {
+                fngroups.push({
+                    ...options,
+                    location: options.location[i],
+                    count: 1,
+                });
+            }
+
+            return { fngroups };
+        };
 
         /** ex. 2,3-difluoro */
-        const PreFunctionalGroup = Node(All(Optional(LocationGroup), Optional(GreekCount), PreFunctionalNode), (groups) => {
-            let subgroup = Molecule.createSubgroup([], {
-                type: 'fngroup',
-                ...groups.reduce((a, b) => {
-                    if (b.hasOwnProperty('location')) {
-                        a.location = a.location.concat(b.location);
-                        return a;
-                    }
-                    return {...a, ...b};
-                }, {location: []}),
-            });
-            subgroup.unserialize(FunctionalGroups[subgroup.functionalGroup].members);
-            return { subgroup };
-        });
+        const PreFunctionalGroup = Node(All(Optional(LocationGroup), Optional(GreekCount), PreFunctionalNode), FunctionalHandler);
 
         /** ex. -1,2-diol */
-        const PostFunctionalGroup = Node(All(Optional(LocationGroup), Optional(GreekCount), PostFunctionalNode), (groups) => {
-            let subgroup = Molecule.createSubgroup([], {
-                type: 'fngroup',
-                ...groups.reduce((a, b) => {
-                    if (b.hasOwnProperty('location')) {
-                        a.location = a.location.concat(b.location);
-                        return a;
-                    }
-                    return {...a, ...b};
-                }, {location: []}),
-            });
-            subgroup.unserialize(FunctionalGroups[subgroup.functionalGroup].members);
-            return { subgroup };
-        });
+        const PostFunctionalGroup = Node(All(Optional(LocationGroup), Optional(GreekCount), PostFunctionalNode), FunctionalHandler);
 
         const FreeChain = Node(All(
             // 1,2,2-trichloro-
@@ -99,43 +99,104 @@ const IupacGrammar = function (Token, All, Any, Plus, Optional, Node) {
             // acid
             Optional(AcidNode)
         ), (groups) => {
-            let chainProps = groups.reduce((a, b) => {
-                if (b.hasOwnProperty('location')) {
-                    a.location = a.location.concat(b.location);
-                    return a;
+            // All props
+            let chainProps = {location: [], children:[]};
+            
+            for (let i in groups) {
+                if (groups[i].hasOwnProperty('fngroups')) {
+                    chainProps.children = chainProps.children.concat(groups[i].fngroups);
+                    continue;
                 }
-                if (b.hasOwnProperty('subgroup')) {
-                    a.children.push(b.subgroup);
+                chainProps = {...chainProps, ...groups[i]};
+            }
+
+            // Generate carbons in main chain
+            let carbons = Molecule.createElements(6, {
+                count: chainProps.prefix,
+                chain: true,
+                bond: {
+                    bondCount: 1,
+                },
+            });
+            let carbonIds = [];
+            for (let i in carbons) carbonIds.push(carbons[i].id);
+
+            // Generate child functional groups
+            let chainChildren = carbons.slice();
+            let implicitChildren = [];
+            for (let i in chainProps.children) {
+                let { location } = chainProps.children[i];
+                delete chainProps.children[i].location;
+                let group = Molecule.createSubgroup([], chainProps.children[i]);
+                group.unserialize(FunctionalGroups[chainProps.children[i].fn].members);
+                if (location === -1) {
+                    implicitChildren.push(group);
+                } else {
+                    for (let o in group.children) {
+                        let bond = (FunctionalGroups[chainProps.children[i].fn].bonds || [])[o] || {};
+                        Molecule.createBond(carbonIds[location - 1], group.children[o].id, bond);
+                    }
                 }
-                return {...a, ...b};
-            }, {location: [], children:[]});
+                chainChildren.push(group);
+            }
 
-            let groupCount = chainProps.children.reduce((a, b) => {
-                return a + (b.count || 1);
-            }, 0);
-            let locLength = chainProps.location.length || 1;
-            let chainCount = chainProps.prefix || 1;
-            let bondCount = chainProps.bondCount;
-            let hydrogenCount = (chainCount * 2) + 2 - ((bondCount - 1) * locLength * 2) - groupCount;
-
-            let chainChildren = chainProps.children.concat([
-                Molecule.createElement(6, {
-                    count: chainProps.prefix,
-                    chain: true,
-                }),
-            ]);
             delete chainProps.children;
-            delete chainProps.subgroup;
 
+            // Generate the main chain group
             let chain = Molecule.createSubgroup(chainChildren, {
                 type: 'chain',
                 ...chainProps,
             });
 
-            chain.append(Molecule.createElement(1, {
-                count: hydrogenCount,
-                chain: true,
-            }));
+            // ethene, ethyne, propene, propyne can be implicitly at location 1
+            if (chainProps.bondCount !== 1 && chainProps.location.length === 0 && (chainProps.prefix === 2 || chainProps.prefix === 3)) chainProps.location.push(1);
+
+            // Change bond counts for main chain
+            for (let i in chainProps.location) {
+                Molecule.createBond(carbonIds[chainProps.location[i]], carbonIds[chainProps.location[i] - 1], {
+                    bondCount: chainProps.bondCount || 1,
+                });
+            }
+
+            // Append the chain
+            Molecule.append(chain);
+
+            // Fix implicitly bonded functional groups (e.g. trichloroethene)
+            for (let i in carbons) {
+                if (!implicitChildren[0]) break;
+                let bondCount = 0;
+                let bonds = Molecule.getBonds(carbons[i]);
+                for (let o in bonds) {
+                    let bond = Molecule.getBond(carbons[i], bonds[o].split('-')[1]);
+                    bondCount += bond.bondCount;
+                }
+                for (let o = bondCount; o < 4; o += 1) {
+                    if (!implicitChildren[0]) break;
+                    for (let u in implicitChildren[0].children) {
+                        let bond = (FunctionalGroups[implicitChildren[0].functionalGroup].bonds || [])[u] || {};
+                        Molecule.createBond(carbons[i], implicitChildren[0].children[u], bond);
+                    }
+                    implicitChildren = implicitChildren.slice(1);
+                }
+            }
+
+            // Dynamically add and bond hydrogens to carbon
+            const flat = Molecule.childIds;
+            for (let i in flat) {
+                if (flat[i].element === 6) {
+                    let bondCount = 0;
+                    let bonds = Molecule.getBonds(flat[i]);
+                    for (let o in bonds) {
+                        let bond = Molecule.getBond(i, bonds[o].split('-')[1]);
+                        bondCount += bond.bondCount;
+                    }
+                    for (let o = bondCount; o < 4; o += 1) {
+                        let el = Molecule.createElement(1);
+                        flat[i].parent.append(el);
+                        Molecule.createBond(flat[i], el);
+                    }
+                }
+            }
             
             return chain;
         });
