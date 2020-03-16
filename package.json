@@ -16,10 +16,11 @@
     "atom",
     "chemistry",
     "chemical",
-    "chemical naming",
-    "iupac",
-    "organic",
-    "inorganic"
+    "chemical engineering",
+    "science",
+    "research",
+    "education",
+    "science communication"
   ],
   "license": "MIT",
   "private": false,
@@ -50,5 +51,6 @@
     "clearMocks": true,
     "coverageDirectory": "coverage",
     "testEnvironment": "node"
-  }
+  },
+  "runkitExampleFilename": "docs/examples/runkit.js"
 }

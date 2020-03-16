@@ -26,6 +26,21 @@ const Molecule = class {
         return atom;
     };
 
+    createAtoms = (el, count) => {
+        let atoms = [];
+        if (typeof count !== 'number' || count < 1) throw new Error('Count must be a positive number');
+
+        for (let i = 0; i < count; i++) {
+            let id = this.s.i.toString(36);
+            this.s.i += 1;
+
+            atoms.push(new Atom(el, this, id));
+            this.s.a[id] = atoms[i].s.a;
+        }
+
+        return atoms;
+    };
+
     // Attach a subcomponent
     contains = (component) => {
         if (component) {

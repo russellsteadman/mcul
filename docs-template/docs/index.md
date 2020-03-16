@@ -2,7 +2,11 @@
 
 # MCUL
 
-MCUL is a molecular parsing engine that takes text such as `CH4` or `methane` and is able to provide information such as the average atomic mass or hydrogen count.
+MCUL simplifies the logic behind organizing atoms into molecules.
+
+<a href="https://www.npmjs.com/package/mcul"><img alt="npm downloads" src="https://img.shields.io/npm/dt/mcul?label=NPM%20downloads&style=flat-square"></a>
+<img src="https://img.shields.io/bundlephobia/minzip/mcul?style=flat-square" alt="package size" />
+<a href="https://www.patreon.com/russellsteadman" title="Donate to this project using Patreon"><img src="https://img.shields.io/badge/patreon-donate-red.svg?style=flat-square" alt="Patreon donate button" /></a>
 
 ## Installation
 
@@ -12,7 +16,7 @@ npm i mcul
 yarn add mcul
 ```
 
-MCUL can also be used over CDN.
+MCUL can also be used over CDN. In this case, mcul loads as `window.mcul`.
 ```html
 <script src="https://cdn.jsdelivr.net/npm/mcul@{{version}}/dist/mcul.js"></script>
 ```
@@ -54,5 +58,7 @@ console.log(Methane.counts); // {"1": 4, "6": 1}
 | Average Atomic Masses | [PubChem](https://pubchem.ncbi.nlm.nih.gov/periodic-table/#view=list) |
 
 ## License
+
+<a href="https://patreon.com/russellsteadman" title="Donate to this project using Patreon"><img src="https://img.shields.io/badge/patreon-donate-red.svg?style=flat-square" alt="Patreon donate button" /></a>
 
 Copyright &copy; {{year}} [Russell Steadman](https://www.russellsteadman.com/?utm_source=mcul&utm_medium=copyright). Licensed under an MIT License (see the LICENSE file for terms).

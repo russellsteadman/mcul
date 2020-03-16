@@ -200,6 +200,20 @@ const Molecule_Molecule = (Molecule_temp = class Molecule {
       return atom;
     });
 
+    Molecule_defineProperty(this, "createAtoms", (el, count) => {
+      let atoms = [];
+      if (typeof count !== 'number' || count < 1) throw new Error('Count must be a positive number');
+
+      for (let i = 0; i < count; i++) {
+        let id = this.s.i.toString(36);
+        this.s.i += 1;
+        atoms.push(new src_Atom(el, this, id));
+        this.s.a[id] = atoms[i].s.a;
+      }
+
+      return atoms;
+    });
+
     Molecule_defineProperty(this, "contains", component => {
       if (component) {
         if (component.type === 'molecule') {
