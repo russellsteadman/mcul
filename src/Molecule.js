@@ -1,222 +1,228 @@
-const Basic = require('./parsers/basic');
-const Iupac = require('./parsers/iupac');
-const Element = require('./Element');
-const Subgroup = require('./Subgroup');
-const Collection = require('./shared/Collection');
-const Types = require('./shared/types');
+import AtomicToAMU from './maps/atomicToAMU';
+import AtomicToSymbol from './maps/atomicToSymbol';
+import Atom from './Atom';
 
-const SCHEMA_VERSION = '0.1.0';
+const SCHEMA_VERSION = 1;
 
-class Molecule {
-    #state = {
-        type: 'molecule',
-        children: [],
-        idIndex: 0,
-        formats: ['basic', 'iupac'],
-        bonds: {},
-    };
-
-    constructor({rawText, format, parent, ...options}) {
-        for (let i in options.parsers) {
-            this.#state.formats.push(i);
-        }
-
-        const fromText = typeof rawText === 'string';
-
-        if (fromText && this.#state.formats.indexOf(format) === -1) {
-            throw new Error(`Text to parse and format must be specified.`);
-        }
-
-        this.#state = {
-            ...this.#state,
-            ...{
-                rawText,
-                format,
-                parent,
-                options: {
-                    ...{},
-                    ...options,
-                },
-            },
+const Molecule = class {
+    constructor() {
+        this.s = {
+            a: {}, // Atoms mapped "id" -> information
+            b: {}, // Bonds mapped "id-id" -> information
+            i: 0, // Index, beginning at 0
         };
 
-        if (fromText) this.parse();
+        this.type = 'molecule';
     }
 
-    #createId = () => {
-        this.#state.idIndex += 1;
-        return this.#state.idIndex.toString(36);
+    // Create a new atom
+    createAtom = (el) => {
+        let id = this.s.i.toString(36);
+        this.s.i += 1;
+
+        let atom = new Atom(el, this, id);
+        this.s.a[id] = atom.s.a;
+
+        return atom;
     };
 
-    findById = Collection.findById.bind(this.#state, this);
+    // Attach a subcomponent
+    contains = (component) => {
+        if (component) {
+            if (component.type === 'molecule') {
+                let index = this.s.i;
 
-    serialize = () => {
-        let children = Array.prototype.slice.call(this.#state.children);
+                for (let i in component.s.a) {
+                    let id = (parseInt(i, 36) + index).toString(36);
+                    this.s.i += 1;
+                    this.s.a[id] = component.s.a[i];
+                }
 
-        for (let i in children) {
-            if (typeof children[i].serialize === 'function') {
-                children[i] = children[i].serialize();
+                for (let i in component.s.b) {
+                    if (!component.s.b) continue;
+                    let [idOne, idTwo] = i.split('-');
+                    idOne = (parseInt(idOne, 36) + index).toString(36);
+                    idTwo = (parseInt(idTwo, 36) + index).toString(36);
+                    this.s.b[`${idOne}-${idTwo}`] = component.s.b[i];
+                    this.s.b[`${idTwo}-${idOne}`] = null;
+                }
+
+                delete component.s;
+                component.s = this.s;
+
+                return this;
+            } else if (component.type === 'atom') {
+                return component.in(this);
+            } else {
+                throw new Error('Must pass an molecule or atom');
+            }
+        } else {
+            throw new Error('Must pass a component');
+        }
+    };
+
+    // Attach to a parent molecule
+    in = (molecule) => {
+        if (!molecule || molecule.type !== 'molecule') throw new Error('Must pass in a Molecule instance');
+        return molecule.contains(this);
+    };
+
+    // Get information on an atom
+    getAtomById = (id) => {
+        let atom = new Atom(null, this, id);
+        atom.s.a = this.s.a[id] || {};
+        return atom;
+    };
+
+    // Get atoms by elements
+    getAtomsByElement = (el) => {
+        el = el ? (typeof el === 'string' ? AtomicToSymbol.indexOf(el) + 1 : el) : 0;
+
+        let atoms = [];
+        for (let id in this.s.a) {
+            if (this.s.a[id].el !== el) continue;
+            let atom = new Atom(null, this, id);
+            atom.s.a = this.s.a[id] || {};
+            atoms.push(atom);
+        }
+
+        return atoms;
+    };
+
+    // Get atoms bonded to an atom
+    getBondedAtoms = (atom) => {
+        let id = (atom && atom.s) && atom.s.id;
+
+        let atoms = [];
+        for (let i in this.s.b) {
+            if (i.split('-')[0] !== id) continue;
+
+            let atom = new Atom(null, this, i.split('-')[1]);
+            atom.s.a = this.s.a[i.split('-')[1]] || {};
+            atoms.push(atom);
+        }
+
+        return atoms;
+    };
+
+    // Get atoms bonded to an atom
+    getBranchPaths = (atom, priorId, originalId) => {
+        let id = ((atom && atom.s) && atom.s.id) || atom;
+
+        let linearPrefix = priorId ? `-${id}` : id;
+        let branchLines = [];
+        let pathEnd = true;
+
+        // Checking for originalId prevents looping for cyclic structures
+        if (id !== originalId) {
+            if (!originalId) originalId = id;
+
+            for (let i in this.s.b) {
+                if (i.split('-')[0] !== id || i.split('-')[1] === priorId) continue;
+
+                pathEnd = false;
+                branchLines = this.getBranchPaths(i.split('-')[1], id, originalId).concat(branchLines);
             }
         }
 
-        return {
-            type: 'molecule',
-            version: SCHEMA_VERSION,
-            children,
-            bonds: this.#state.bonds,
-            idIndex: this.#state.idIndex,
-            ...(this.#state.rawText ? {fromText: this.#state.rawText} : {}),
-        };
-    };
-
-    unserialize = (mol) => {
-        if (mol.version.split('.')[0] !== SCHEMA_VERSION.split('.')[0]) throw new Error('Incompatible version');
-
-        this.#state.idIndex = mol.idIndex;
-        this.#state.rawText = mol.fromText;
-        this.#state.bonds = mol.bonds;
-
-        for (let i in mol.children) {
-            if (mol.children[i].type === Types.element[0]) {
-                let elProps = {...mol.children[i]};
-                delete elProps.type;
-                delete elProps.element;
-                let el = this.createElement(mol.children[i].element, elProps);
-                this.append(el);
-            } else if (Types.subgroup.indexOf(mol.children[i].type) !== -1) {
-                let groupProps = {...mol.children[i]};
-                delete groupProps.children;
-                delete groupProps.type;
-                let group = this.createSubgroup([], groupProps);
-                group.unserialize(mol.children[i].children || []);
-                this.append(group);
+        if (pathEnd) {
+            // This is the end of a path, so create a new branch
+            branchLines.push(linearPrefix);
+        } else {
+            // Add to all paths as a part in the change
+            for (let i in branchLines) {
+                branchLines[i] = linearPrefix + branchLines[i];
             }
         }
+
+        return branchLines;
     };
 
-    createElement = (element, options) => (new Element(element, {
-        ...options,
-        molecule: this,
-        id: this.#createId(),
-    }));
+    // Bond two atoms
+    bond = (atomOne, atomTwo, options) => {
+        let idOne = (atomOne && atomOne.s) && atomOne.s.id;
+        let idTwo = (atomTwo && atomTwo.s) && atomTwo.s.id;
 
-    createElements = (element, options) => {
-        let { count, bond } = options;
-        count = count || 1;
-        delete options.count;
-        delete options.bond;
-
-        let el = [];
-
-        for (let i = 0; i < count; i += 1) {
-            el.push(this.createElement(element, options));
-            if (bond && i !== 0) this.createBond(el[i], el[i - 1], bond);
-        }
-
-        return el;
-    };
-
-    createSubgroup = (constituents, options) => (new Subgroup(constituents, {
-        ...options,
-        molecule: this,
-        id: this.#createId(),
-    }));
-
-    createSubgroups = (options) => {
-        let { count } = options;
-        count = count || 1;
-        delete options.count;
-
-        let sg = [];
-
-        for (let i = 0; i < count; i += 1) {
-            sg.push(this.createSubgroup([], options));
-        }
-
-        return sg;
-    };
-
-    createBond = (one, two, options) => {
-        if (!one || !two) throw new Error('Missing bonding elements');
-        let bondId = (one.id || one) + '-' + (two.id || two);
-        let bondMirror = (two.id || two) + '-' + (one.id || one);
-        options = {
-            bondCount: 1,
+        this.s.b[`${idOne}-${idTwo}`] = {
+            type: 'c', // One of: c (Covalent), i (Ionic), m (Metallic)
+            count: 1, // Combined sigma / pi bonding count for covalent
             ...options,
         };
-        this.#state.bonds[bondId] = options;
-        this.#state.bonds[bondMirror] = bondId;
+
+        this.s.b[`${idTwo}-${idOne}`] = null;
+
+        return this;
     };
 
-    removeBond = (one, two) => {
-        let bondId = (one.id || one) + '-' + (two.id || two);
-        let bondMirror = (two.id || two) + '-' + (one.id || one);
-        delete this.#state.bonds[bondId];
-        delete this.#state.bonds[bondMirror];
+    // Modify bonds
+    modifyBond = (atomOne, atomTwo, changes) => {
+        let idOne = (atomOne && atomOne.s) && atomOne.s.id;
+        let idTwo = (atomTwo && atomTwo.s) && atomTwo.s.id;
+        let bond = this.s.b[`${idOne}-${idTwo}`];
+
+        if (typeof bond === 'object' && bond) {
+            this.s.b[`${idOne}-${idTwo}`] = {
+                ...this.s.b[`${idOne}-${idTwo}`],
+                ...changes,
+            };
+        } else if (typeof bond === 'object' && !bond) {
+            this.s.b[`${idTwo}-${idOne}`] = {
+                ...this.s.b[`${idTwo}-${idOne}`],
+                ...changes,
+            };
+        } else {
+            throw new Error('Unable to modify bond, does not exist');
+        }
     };
-    
-    getBond = (one, two) => {
-        let bondId = (one.id || one) + '-' + (two.id || two);
-        if (!this.#state.bonds[bondId]) {
+
+    // Get a bond
+    getBond = (atomOne, atomTwo) => {
+        let idOne = (atomOne && atomOne.s) && atomOne.s.id;
+        let idTwo = (atomTwo && atomTwo.s) && atomTwo.s.id;
+        let bond = this.s.b[`${idOne}-${idTwo}`];
+
+        if (typeof bond === 'object' && bond) {
+            return bond;
+        } else if (typeof bond === 'object' && !bond) {
+            return this.s.b[`${idTwo}-${idOne}`];
+        } else {
             return null;
-        } else if (typeof this.#state.bonds[bondId] === 'string') {
-            return this.#state.bonds[this.#state.bonds[bondId]];
-        } else {
-            return this.#state.bonds[bondId];
         }
     };
 
-    getBonds = (one) => {
-        let bondPart = (one.id || one);
-        let bonds = [];
-        for (let i in this.#state.bonds) {
-            if (i.split('-')[0] === bondPart) bonds.push(i);
-        }
-        return bonds;
+    // Serialize molecule data to a string
+    pack = () => {
+        return JSON.stringify({
+            v: SCHEMA_VERSION,
+            s: this.s,
+        });
     };
 
-    append = Collection.append.bind(this.#state);
-    appendAll = Collection.appendAll.bind(this.#state);
-
-    get children() {
-        return Array.prototype.slice.call(this.#state.children);
-    }
-
-    get type() {
-        return this.#state.type;
-    }
-
-    get version() {
-        return SCHEMA_VERSION;
-    }
-
-    get mass() {
-        return Collection.getMass.call(this.#state);
-    }
-
-    get counts() {
-        return Collection.getCounts.call(this.#state);
-    }
-
-    get childIds() {
-        return Collection.getChildIds.call(this.#state);
-    }
-
-    getElementFraction = Collection.getElementFraction.bind(this.#state);
-    getMassFraction = Collection.getMassFraction.bind(this.#state);
-
-    parse = () => {
-        let { rawText, format } = this.#state;
-        if (format === this.#state.formats[0]) {
-            this.#state.children = Basic.call(this, rawText);
-        } else if (format === this.#state.formats[1]) {
-            Iupac.call(this, rawText);
-        } else if (typeof this.#state.options.parsers[format] === 'function') {
-            this.#state.children = this.#state.options.parsers[format].call(this, rawText);
-        } else {
-            throw new Error(`Cannot parse type "${format}".`);
+    // Unserialize molecule data from a string
+    unpack = (packed) => {
+        try {
+            let pack = JSON.parse(packed);
+            if (pack.v > SCHEMA_VERSION) throw new Error('Upgrade mcul to use newer package schema');
+            this.s = pack.s;
+        } catch (e) {
+            throw new Error('Unable to parse packed data');
         }
     };
-}
 
-module.exports = Molecule;
+    // Create a new, identical molecule.
+    clone = () => {
+        let double = new Molecule();
+        double.s = JSON.parse(JSON.stringify(this.s));
+        return double;
+    };
+
+    get mass () {
+        let mass = 0;
+        for (let i in this.s.a) {
+            mass += AtomicToAMU[this.s.a[i].el - 1] || 0;
+        }
+        return Math.round(mass * 1000) / 1000;
+    }
+};
+
+export default Molecule;

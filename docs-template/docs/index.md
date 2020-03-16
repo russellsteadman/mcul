@@ -1,4 +1,4 @@
-<!-- WARNING: Edit this file in /docs-template -->
+{{notice}}
 
 # MCUL
 
@@ -14,7 +14,7 @@ yarn add mcul
 
 MCUL can also be used over CDN.
 ```html
-<script src="https://cdn.jsdelivr.net/npm/mcul@0.1.0-alpha3/dist/mcul.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mcul@{{version}}/dist/mcul.js"></script>
 ```
 
 ## Documentation
@@ -55,4 +55,4 @@ console.log(Methane.counts); // {"1": 4, "6": 1}
 
 ## License
 
-Copyright &copy; 2020 [Russell Steadman](https://www.russellsteadman.com/?utm_source=mcul&utm_medium=copyright). Licensed under an MIT License (see the LICENSE file for terms).
+Copyright &copy; {{year}} [Russell Steadman](https://www.russellsteadman.com/?utm_source=mcul&utm_medium=copyright). Licensed under an MIT License (see the LICENSE file for terms).

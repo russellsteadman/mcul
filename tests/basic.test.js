@@ -1,454 +1,100 @@
 /* global test expect */
-const Molecule = require("../src/mcul");
+const { Molecule, Atom } = require("../dist/mcul.node");
 
-test("Hydrochloric acid", () => {
-  expect(Molecule.createFromText("HCl", "basic").serialize())
-    .toMatchInlineSnapshot(`
+test("Can create methane", () => {
+  let methane = new Molecule();
+
+  let carbon = new Atom("C");
+  let hydrogen = new Atom("H");
+
+  let c1 = carbon.in(methane);
+
+  let h1 = methane.contains(hydrogen);
+  let h2 = hydrogen.in(methane);
+  let h3 = methane.createAtom("H");
+  let h4 = methane.contains(hydrogen);
+
+  methane
+    .bond(c1, h1)
+    .bond(c1, h2)
+    .bond(c1, h3)
+    .bond(c1, h4);
+
+  expect(methane.mass).toBe(16.043);
+
+  expect(JSON.parse(methane.pack())).toMatchInlineSnapshot(`
     Object {
-      "bonds": Object {},
-      "children": Array [
-        Object {
-          "element": 1,
-          "id": "1",
-          "type": "element",
+      "s": Object {
+        "a": Object {
+          "0": Object {
+            "el": 6,
+          },
+          "1": Object {
+            "el": 1,
+          },
+          "2": Object {
+            "el": 1,
+          },
+          "3": Object {
+            "el": 1,
+          },
+          "4": Object {
+            "el": 1,
+          },
         },
-        Object {
-          "element": 17,
-          "id": "2",
-          "type": "element",
+        "b": Object {
+          "0-3": Object {
+            "count": 1,
+            "type": "c",
+          },
+          "0-4": Object {
+            "count": 1,
+            "type": "c",
+          },
+          "3-0": null,
+          "4-0": null,
         },
-      ],
-      "fromText": "HCl",
-      "idIndex": 2,
-      "type": "molecule",
-      "version": "0.1.0",
+        "i": 5,
+      },
+      "v": 1,
     }
   `);
 });
 
-test("Single Parenthetical Group", () => {
-  expect(Molecule.createFromText("Al(NH)", "basic").serialize())
-    .toMatchInlineSnapshot(`
-    Object {
-      "bonds": Object {},
-      "children": Array [
-        Object {
-          "element": 13,
-          "id": "1",
-          "type": "element",
-        },
-        Object {
-          "children": Array [
-            Object {
-              "element": 7,
-              "id": "2",
-              "type": "element",
-            },
-            Object {
-              "element": 1,
-              "id": "3",
-              "type": "element",
-            },
-          ],
-          "id": "4",
-          "type": "subgroup",
-        },
-      ],
-      "fromText": "Al(NH)",
-      "idIndex": 4,
-      "type": "molecule",
-      "version": "0.1.0",
-    }
-  `);
-});
+test("Can branch a carbon chain", () => {
+  let chain = new Molecule();
 
-test("Layered Parentheses", () => {
-  expect(Molecule.createFromText("Al(N(HCl))", "basic").serialize())
-    .toMatchInlineSnapshot(`
-    Object {
-      "bonds": Object {},
-      "children": Array [
-        Object {
-          "element": 13,
-          "id": "1",
-          "type": "element",
-        },
-        Object {
-          "children": Array [
-            Object {
-              "element": 7,
-              "id": "2",
-              "type": "element",
-            },
-            Object {
-              "children": Array [
-                Object {
-                  "element": 1,
-                  "id": "3",
-                  "type": "element",
-                },
-                Object {
-                  "element": 17,
-                  "id": "4",
-                  "type": "element",
-                },
-              ],
-              "id": "5",
-              "type": "subgroup",
-            },
-          ],
-          "id": "6",
-          "type": "subgroup",
-        },
-      ],
-      "fromText": "Al(N(HCl))",
-      "idIndex": 6,
-      "type": "molecule",
-      "version": "0.1.0",
-    }
-  `);
-});
+  let carbons = [];
+  for (let i = 0; i < 15; i++) {
+    carbons.push(chain.createAtom("C"));
+  }
 
-test("Layered Parentheses With Atomic Counts", () => {
-  expect(Molecule.createFromText("Al3(N2(HCl))", "basic").serialize())
-    .toMatchInlineSnapshot(`
-    Object {
-      "bonds": Object {},
-      "children": Array [
-        Object {
-          "count": 3,
-          "element": 13,
-          "id": "1",
-          "type": "element",
-        },
-        Object {
-          "children": Array [
-            Object {
-              "count": 2,
-              "element": 7,
-              "id": "2",
-              "type": "element",
-            },
-            Object {
-              "children": Array [
-                Object {
-                  "element": 1,
-                  "id": "3",
-                  "type": "element",
-                },
-                Object {
-                  "element": 17,
-                  "id": "4",
-                  "type": "element",
-                },
-              ],
-              "id": "5",
-              "type": "subgroup",
-            },
-          ],
-          "id": "6",
-          "type": "subgroup",
-        },
-      ],
-      "fromText": "Al3(N2(HCl))",
-      "idIndex": 6,
-      "type": "molecule",
-      "version": "0.1.0",
-    }
-  `);
-});
+  for (let i = 0; i < 14; i++) {
+    chain.bond(carbons[i], carbons[i + 1]);
+  }
 
-test("Layered Parentheses With Charges", () => {
-  expect(Molecule.createFromText("Al^+3(N^-2(HCl))", "basic").serialize())
-    .toMatchInlineSnapshot(`
-    Object {
-      "bonds": Object {},
-      "children": Array [
-        Object {
-          "charge": 3,
-          "element": 13,
-          "id": "1",
-          "type": "element",
-        },
-        Object {
-          "children": Array [
-            Object {
-              "charge": -2,
-              "element": 7,
-              "id": "2",
-              "type": "element",
-            },
-            Object {
-              "children": Array [
-                Object {
-                  "element": 1,
-                  "id": "3",
-                  "type": "element",
-                },
-                Object {
-                  "element": 17,
-                  "id": "4",
-                  "type": "element",
-                },
-              ],
-              "id": "5",
-              "type": "subgroup",
-            },
-          ],
-          "id": "6",
-          "type": "subgroup",
-        },
-      ],
-      "fromText": "Al^+3(N^-2(HCl))",
-      "idIndex": 6,
-      "type": "molecule",
-      "version": "0.1.0",
-    }
-  `);
-});
+  let methyl = chain.createAtom("C");
+  chain.bond(methyl, carbons[3]);
 
-test("Layered Parentheses With Atomic and Group Counts", () => {
-  expect(Molecule.createFromText("Al3(N2(HCl)4)5", "basic").serialize())
-    .toMatchInlineSnapshot(`
-    Object {
-      "bonds": Object {},
-      "children": Array [
-        Object {
-          "count": 3,
-          "element": 13,
-          "id": "1",
-          "type": "element",
-        },
-        Object {
-          "children": Array [
-            Object {
-              "count": 2,
-              "element": 7,
-              "id": "2",
-              "type": "element",
-            },
-            Object {
-              "children": Array [
-                Object {
-                  "element": 1,
-                  "id": "3",
-                  "type": "element",
-                },
-                Object {
-                  "element": 17,
-                  "id": "4",
-                  "type": "element",
-                },
-              ],
-              "count": 4,
-              "id": "5",
-              "type": "subgroup",
-            },
-          ],
-          "count": 5,
-          "id": "6",
-          "type": "subgroup",
-        },
-      ],
-      "fromText": "Al3(N2(HCl)4)5",
-      "idIndex": 6,
-      "type": "molecule",
-      "version": "0.1.0",
-    }
-  `);
-});
+  let amine = new Molecule();
+  let h1 = amine.createAtom("H");
+  let h2 = amine.createAtom("H");
+  let n = amine.createAtom("N");
 
-test("Advanced Ligand Complex Without Charges", () => {
-  expect(Molecule.createFromText("[Cu(NH3)6]_3(H2O)12", "basic").serialize())
-    .toMatchInlineSnapshot(`
-    Object {
-      "bonds": Object {},
-      "children": Array [
-        Object {
-          "children": Array [
-            Object {
-              "element": 29,
-              "id": "1",
-              "type": "element",
-            },
-            Object {
-              "children": Array [
-                Object {
-                  "element": 7,
-                  "id": "2",
-                  "type": "element",
-                },
-                Object {
-                  "count": 3,
-                  "element": 1,
-                  "id": "3",
-                  "type": "element",
-                },
-              ],
-              "count": 6,
-              "id": "4",
-              "type": "subgroup",
-            },
-          ],
-          "count": 3,
-          "id": "5",
-          "type": "complex",
-        },
-        Object {
-          "children": Array [
-            Object {
-              "count": 2,
-              "element": 1,
-              "id": "6",
-              "type": "element",
-            },
-            Object {
-              "element": 8,
-              "id": "7",
-              "type": "element",
-            },
-          ],
-          "count": 12,
-          "id": "8",
-          "type": "subgroup",
-        },
-      ],
-      "fromText": "[Cu(NH3)6]_3(H2O)12",
-      "idIndex": 8,
-      "type": "molecule",
-      "version": "0.1.0",
-    }
-  `);
-});
+  amine.bond(n, h1).bond(n, h2);
 
-test("Advanced Ligand Complex With Charges", () => {
-  expect(
-    Molecule.createFromText("[Cu(NH3)6]^+6_3(H2O)^+5_12", "basic").serialize()
-  ).toMatchInlineSnapshot(`
-    Object {
-      "bonds": Object {},
-      "children": Array [
-        Object {
-          "charge": 6,
-          "children": Array [
-            Object {
-              "element": 29,
-              "id": "1",
-              "type": "element",
-            },
-            Object {
-              "children": Array [
-                Object {
-                  "element": 7,
-                  "id": "2",
-                  "type": "element",
-                },
-                Object {
-                  "count": 3,
-                  "element": 1,
-                  "id": "3",
-                  "type": "element",
-                },
-              ],
-              "count": 6,
-              "id": "4",
-              "type": "subgroup",
-            },
-          ],
-          "count": 3,
-          "id": "5",
-          "type": "complex",
-        },
-        Object {
-          "charge": 5,
-          "children": Array [
-            Object {
-              "count": 2,
-              "element": 1,
-              "id": "6",
-              "type": "element",
-            },
-            Object {
-              "element": 8,
-              "id": "7",
-              "type": "element",
-            },
-          ],
-          "count": 12,
-          "id": "8",
-          "type": "subgroup",
-        },
-      ],
-      "fromText": "[Cu(NH3)6]^+6_3(H2O)^+5_12",
-      "idIndex": 8,
-      "type": "molecule",
-      "version": "0.1.0",
-    }
-  `);
-});
+  let amine2 = amine.clone();
 
-test("Advanced Ligand Complex With Implicit Counts", () => {
-  expect(
-    Molecule.createFromText("[Cu(NH3)6]3^+6(H2O)12^+5", "basic").serialize()
-  ).toMatchInlineSnapshot(`
-    Object {
-      "bonds": Object {},
-      "children": Array [
-        Object {
-          "charge": 6,
-          "children": Array [
-            Object {
-              "element": 29,
-              "id": "1",
-              "type": "element",
-            },
-            Object {
-              "children": Array [
-                Object {
-                  "element": 7,
-                  "id": "2",
-                  "type": "element",
-                },
-                Object {
-                  "count": 3,
-                  "element": 1,
-                  "id": "3",
-                  "type": "element",
-                },
-              ],
-              "count": 6,
-              "id": "4",
-              "type": "subgroup",
-            },
-          ],
-          "count": 3,
-          "id": "5",
-          "type": "complex",
-        },
-        Object {
-          "charge": 5,
-          "children": Array [
-            Object {
-              "count": 2,
-              "element": 1,
-              "id": "6",
-              "type": "element",
-            },
-            Object {
-              "element": 8,
-              "id": "7",
-              "type": "element",
-            },
-          ],
-          "count": 12,
-          "id": "8",
-          "type": "subgroup",
-        },
-      ],
-      "fromText": "[Cu(NH3)6]3^+6(H2O)12^+5",
-      "idIndex": 8,
-      "type": "molecule",
-      "version": "0.1.0",
-    }
-  `);
+  amine.in(chain);
+
+  chain.bond(chain.getAtomsByElement("N")[0], methyl);
+
+  expect(chain.getBranchPaths(carbons[7])).toMatchInlineSnapshot(`
+Array [
+  "7-8-9-a-b-c-d-e",
+  "7-6-5-4-3-f-i-h",
+  "7-6-5-4-3-f-i-g",
+  "7-6-5-4-3-2-1-0",
+]
+`);
 });

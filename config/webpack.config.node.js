@@ -1,4 +1,3 @@
-/* global __dirname */
 const path = require('path');
 
 module.exports = {
@@ -7,7 +6,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, './../dist'), 
     filename: 'mcul.node.js',
-    libraryTarget: 'commonjs2'
+    libraryTarget: 'commonjs2',
   },
 
   devtool: 'cheap-source-map',
@@ -19,18 +18,18 @@ module.exports = {
             exclude: /(node_modules|bower_components)/,
             use: {
                 loader: 'babel-loader',
-                options: require('./babel.config')(true)
-            }
-        }
-    ]
+                options: require('./babel.config')(true),
+            },
+        },
+    ],
   },
 
   resolve: {
     modules: [
       'node_modules',
-      path.resolve(__dirname, 'src')
+      path.resolve(__dirname, 'src'),
     ],
-    extensions: ['.js', '.json']
+    extensions: ['.js', '.json'],
   },
 
   externals: function(context, request, callback) {
@@ -46,8 +45,8 @@ module.exports = {
   mode: 'production',
 
   optimization: {
-    minimize: false
+    minimize: false,
   },
 
-  plugins: []
+  plugins: [],
 };

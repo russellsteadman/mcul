@@ -1,7 +1,7 @@
 {
   "name": "mcul",
-  "version": "0.1.0-alpha2",
-  "description": "A molecular parsing engine",
+  "version": "0.1.0-alpha3",
+  "description": "A molecular generation engine",
   "main": "dist/mcul.node.js",
   "repository": "https://github.com/teamtofu/mcul",
   "homepage": "https://github.com/teamtofu/mcul",
@@ -24,49 +24,31 @@
   "license": "MIT",
   "private": false,
   "devDependencies": {
-    "@babel/core": "^7.4.4",
-    "@babel/plugin-proposal-class-properties": "^7.4.4",
-    "@babel/plugin-proposal-object-rest-spread": "^7.4.4",
-    "@babel/plugin-proposal-private-methods": "^7.4.4",
-    "@babel/preset-env": "^7.4.4",
-    "babel-eslint": "^10.0.1",
-    "babel-jest": "^24.7.1",
+    "@babel/core": "^7.8.7",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-proposal-object-rest-spread": "^7.8.3",
+    "@babel/preset-env": "^7.8.7",
+    "babel-eslint": "^10.1.0",
+    "babel-jest": "^25.1.0",
     "babel-loader": "^8.0.5",
-    "eslint": "^5.16.0",
-    "jest": "^24.7.1",
-    "prettier": "^1.17.0",
-    "webpack": "^4.30.0",
-    "webpack-cli": "^3.3.1"
+    "eslint": "^6.8.0",
+    "fs-extra": "^8.1.0",
+    "glob-all": "^3.1.0",
+    "handlebars": "^4.7.3",
+    "jest": "^25.1.0",
+    "prettier": "^1.19.1",
+    "webpack": "^4.42.0",
+    "webpack-cli": "^3.3.11"
   },
   "scripts": {
-    "build": "webpack --config config/webpack.config.js && webpack --config config/webpack.config.node.js",
-    "test": "jest",
-    "test-update": "jest --updateSnapshot",
+    "build": "node config/docsBuild.js && webpack --config config/webpack.config.js && webpack --config config/webpack.config.node.js",
+    "test": "webpack --config config/webpack.config.node.js && jest",
+    "test-update": "webpack --config config/webpack.config.node.js && jest --updateSnapshot",
     "lint": "eslint src"
-  },
-  "dependencies": {
-    "rd-parse": "^2.1.4"
   },
   "jest": {
     "clearMocks": true,
     "coverageDirectory": "coverage",
     "testEnvironment": "node"
-  },
-  "babel": {
-    "presets": [
-      [
-        "@babel/preset-env",
-        {
-          "targets": {
-            "browsers": "node >= 6"
-          }
-        }
-      ]
-    ],
-    "plugins": [
-      "@babel/plugin-proposal-object-rest-spread",
-      "@babel/plugin-proposal-class-properties",
-      "@babel/plugin-proposal-private-methods"
-    ]
   }
 }

@@ -1,8 +1,8 @@
-<!-- WARNING: Edit this file in /docs-template -->
+{{notice}}
 
 # MCUL
 
-MCUL is a molecular parsing engine that takes text such as `CH4` or `methane` and is able to provide information such as the average atomic mass or hydrogen count.
+MCUL is a molecular generation engine that takes allows you to .
 
 ## Installation
 
@@ -14,7 +14,7 @@ yarn add mcul
 
 MCUL can also be used over CDN.
 ```html
-<script src="https://cdn.jsdelivr.net/npm/mcul@0.1.0-alpha3/dist/mcul.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mcul@{{version}}/dist/mcul.js"></script>
 ```
 
 ## Documentation
@@ -29,4 +29,4 @@ MCUL is currently in alpha development, and thus does not have documentation.
 
 ## License
 
-Copyright &copy; 2020 [Russell Steadman](https://www.russellsteadman.com/?utm_source=mcul&utm_medium=copyright). Licensed under an MIT License (see the LICENSE file for terms).
+Copyright &copy; {{year}} [Russell Steadman](https://www.russellsteadman.com/?utm_source=mcul&utm_medium=copyright). Licensed under an MIT License (see the LICENSE file for terms).
