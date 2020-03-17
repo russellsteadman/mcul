@@ -47,7 +47,29 @@ ethanol
 
 ## Documentation
 
-MCUL is currently in alpha development, and thus does not have documentation.
+### Basic Usage
+
+#### Molecule
+
+The `Molecule` class serves as a storage for atoms and as a way to interact with the molecule as a whole.
+
+##### Molecule.createAtom(symbol)
+
+Accepts a string element symbol (e.g. `'H'`), and returns an `Atom` instance. Atoms created through this method are already associated with the molecule.
+
+##### Molecule.createAtoms(symbol, count)
+
+Accepts a string element symbol (e.g. `'H'`) as well as a numeric count (e.g. `4`), and returns an array of `Atom` instances.
+
+##### Molecule.bond(atomOne, atomTwo, options)
+
+Accepts two atoms
+
+#### Atom
+
+### All Documentation
+
+Visit [mcul.js.org](https://mcul.js.org) for the complete documentation.
 
 ## Data Sources
 

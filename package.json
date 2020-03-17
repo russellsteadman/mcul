@@ -43,7 +43,7 @@
   },
   "scripts": {
     "build": "node config/docsBuild.js && webpack --config config/webpack.config.js && webpack --config config/webpack.config.node.js",
-    "test": "webpack --config config/webpack.config.node.js && jest",
+    "test": "webpack --config config/webpack.config.node.js && jest --verbose",
     "test-update": "webpack --config config/webpack.config.node.js && jest --updateSnapshot",
     "lint": "eslint src"
   },

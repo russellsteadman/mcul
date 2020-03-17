@@ -1,6 +1,7 @@
 import AtomicToAMU from './maps/atomicToAMU';
 import AtomicToSymbol from './maps/atomicToSymbol';
 import Atom from './Atom';
+import Add from './ext/Add';
 
 const SCHEMA_VERSION = 1;
 
@@ -13,6 +14,8 @@ const Molecule = class {
         };
 
         this.type = 'molecule';
+
+        this.add = Add.bind(this);
     }
 
     // Create a new atom
@@ -42,50 +45,27 @@ const Molecule = class {
     };
 
     // Attach a subcomponent
-    contains = (component) => {
-        if (component) {
-            if (component.type === 'molecule') {
-                let index = this.s.i;
-
-                for (let i in component.s.a) {
-                    let id = (parseInt(i, 36) + index).toString(36);
-                    this.s.i += 1;
-                    this.s.a[id] = component.s.a[i];
-                }
-
-                for (let i in component.s.b) {
-                    if (!component.s.b) continue;
-                    let [idOne, idTwo] = i.split('-');
-                    idOne = (parseInt(idOne, 36) + index).toString(36);
-                    idTwo = (parseInt(idTwo, 36) + index).toString(36);
-                    this.s.b[`${idOne}-${idTwo}`] = component.s.b[i];
-                    this.s.b[`${idTwo}-${idOne}`] = null;
-                }
-
-                delete component.s;
-                component.s = this.s;
-
-                return this;
-            } else if (component.type === 'atom') {
-                return component.in(this);
-            } else {
-                throw new Error('Must pass an molecule or atom');
-            }
+    contains = (atom) => {
+        if (atom && atom.type === 'atom') {
+            return atom.in(this);
         } else {
-            throw new Error('Must pass a component');
+            throw new Error('Must pass an atom');
         }
-    };
-
-    // Attach to a parent molecule
-    in = (molecule) => {
-        if (!molecule || molecule.type !== 'molecule') throw new Error('Must pass in a Molecule instance');
-        return molecule.contains(this);
     };
 
     // Get information on an atom
     getAtomById = (id) => {
+        if (id && id.type === 'atom') return id;
         let atom = new Atom(null, this, id);
         atom.s.a = this.s.a[id] || {};
+        return atom;
+    };
+
+    // Get atom id
+    getAtomId = (atom) => {
+        if (typeof atom === 'string') return atom;
+        atom = (atom && atom.s) && atom.s.id;
+        if (typeof atom !== 'string') throw new Error('Not an atom');
         return atom;
     };
 
@@ -96,9 +76,7 @@ const Molecule = class {
         let atoms = [];
         for (let id in this.s.a) {
             if (this.s.a[id].el !== el) continue;
-            let atom = new Atom(null, this, id);
-            atom.s.a = this.s.a[id] || {};
-            atoms.push(atom);
+            atoms.push(this.getAtomById(id));
         }
 
         return atoms;
@@ -106,23 +84,35 @@ const Molecule = class {
 
     // Get atoms bonded to an atom
     getBondedAtoms = (atom) => {
-        let id = (atom && atom.s) && atom.s.id;
+        let id = this.getAtomId(atom);
 
         let atoms = [];
         for (let i in this.s.b) {
             if (i.split('-')[0] !== id) continue;
-
-            let atom = new Atom(null, this, i.split('-')[1]);
-            atom.s.a = this.s.a[i.split('-')[1]] || {};
-            atoms.push(atom);
+            atoms.push(this.getAtomById(i.split('-')[1]));
         }
 
         return atoms;
     };
 
     // Get atoms bonded to an atom
+    getBondCount = (atom) => {
+        let id = this.getAtomId(atom);
+        let count = 0;
+        let bond;
+
+        for (let i in this.s.b) {
+            bond = this.s.b[i];
+            if (!bond) bond = this.s.b[`${i.split('-')[1]}-${i.split('-')[0]}`];
+            if (i.split('-')[0] === id) count += (bond.count || 1);
+        }
+
+        return count;
+    };
+
+    // Get atoms bonded to an atom
     getBranchPaths = (atom, priorId, originalId) => {
-        let id = ((atom && atom.s) && atom.s.id) || atom;
+        let id = this.getAtomId(atom);
 
         let linearPrefix = priorId ? `-${id}` : id;
         let branchLines = [];
@@ -155,8 +145,8 @@ const Molecule = class {
 
     // Bond two atoms
     bond = (atomOne, atomTwo, options) => {
-        let idOne = (atomOne && atomOne.s) && atomOne.s.id;
-        let idTwo = (atomTwo && atomTwo.s) && atomTwo.s.id;
+        let idOne = this.getAtomId(atomOne);
+        let idTwo = this.getAtomId(atomTwo);
 
         this.s.b[`${idOne}-${idTwo}`] = {
             type: 'c', // One of: c (Covalent), i (Ionic), m (Metallic)
@@ -171,8 +161,8 @@ const Molecule = class {
 
     // Modify bonds
     modifyBond = (atomOne, atomTwo, changes) => {
-        let idOne = (atomOne && atomOne.s) && atomOne.s.id;
-        let idTwo = (atomTwo && atomTwo.s) && atomTwo.s.id;
+        let idOne = this.getAtomId(atomOne);
+        let idTwo = this.getAtomId(atomTwo);
         let bond = this.s.b[`${idOne}-${idTwo}`];
 
         if (typeof bond === 'object' && bond) {
@@ -192,8 +182,8 @@ const Molecule = class {
 
     // Get a bond
     getBond = (atomOne, atomTwo) => {
-        let idOne = (atomOne && atomOne.s) && atomOne.s.id;
-        let idTwo = (atomTwo && atomTwo.s) && atomTwo.s.id;
+        let idOne = this.getAtomId(atomOne);
+        let idTwo = this.getAtomId(atomTwo);
         let bond = this.s.b[`${idOne}-${idTwo}`];
 
         if (typeof bond === 'object' && bond) {
@@ -222,6 +212,52 @@ const Molecule = class {
         } catch (e) {
             throw new Error('Unable to parse packed data');
         }
+
+        return this;
+    };
+
+    // Generate a chain of carbons (simplifies many organic compounds)
+    chainCarbons = (count, bondCount) => {
+        if (!bondCount) bondCount = 1;
+        if ((bondCount < 1 && bondCount > 3) || (bondCount === 3 && count > 2)) {
+            throw new Error('Chain must have a possible number of bonds');
+        }
+
+        let carbons = this.createAtoms('C', count);
+
+        for (let i = 1; i < count; i++) {
+            this.bond(carbons[i - 1], carbons[i], {count: bondCount});
+        }
+
+        return carbons;
+    };
+
+    // Hydrogenate one carbon
+    hydrogenateCarbon = (carbon) => {
+        let bondCount = this.getBondCount(carbon);
+            
+        for (let o = bondCount; o < 4; o++) {
+            let hydrogen = this.createAtom('H');
+            this.bond(carbon, hydrogen);
+        }
+
+        return this;
+    };
+
+    // Hydrogenate all carbons (simplifies many organic compounds)
+    hydrogenateCarbons = () => {
+        let carbons = this.getAtomsByElement('C');
+        
+        for (let i in carbons) {
+            let bondCount = this.getBondCount(carbons[i]);
+            
+            for (let o = bondCount; o < 4; o++) {
+                let hydrogen = this.createAtom('H');
+                this.bond(carbons[i], hydrogen);
+            }
+        }
+
+        return this;
     };
 
     // Create a new, identical molecule.
@@ -237,6 +273,60 @@ const Molecule = class {
             mass += AtomicToAMU[this.s.a[i].el - 1] || 0;
         }
         return Math.round(mass * 1000) / 1000;
+    }
+
+    get atomCounts () {
+        let counts = {};
+        let countsSymbol = {};
+
+        for (let i in this.s.a) {
+            counts[this.s.a[i].el] = counts[this.s.a[i].el] || 0;
+            counts[this.s.a[i].el]++;
+        }
+        
+        for (let i in counts) countsSymbol[AtomicToSymbol[Number(i) - 1]] = counts[i];
+
+        return {symbol: countsSymbol, atomic: counts};
+    }
+
+    get moleFraction () {
+        let counts = {};
+        let countsSymbol = {};
+        let total = 0;
+
+        for (let i in this.s.a) {
+            counts[this.s.a[i].el] = counts[this.s.a[i].el] || 0;
+            counts[this.s.a[i].el]++;
+            total++;
+        }
+
+        for (let i in counts) {
+            counts[i] /= total;
+            counts[i] = Math.round(counts[i] * 10000) / 10000;
+            countsSymbol[AtomicToSymbol[Number(i) - 1]] = counts[i];
+        }
+
+        return {symbol: countsSymbol, atomic: counts};
+    }
+
+    get massFraction () {
+        let counts = {};
+        let countsSymbol = {};
+        let total = 0;
+
+        for (let i in this.s.a) {
+            counts[this.s.a[i].el] = counts[this.s.a[i].el] || 0;
+            counts[this.s.a[i].el] += AtomicToAMU[this.s.a[i].el - 1];
+            total += AtomicToAMU[this.s.a[i].el - 1];
+        }
+
+        for (let i in counts) {
+            counts[i] /= total;
+            counts[i] = Math.round(counts[i] * 10000) / 10000;
+            countsSymbol[AtomicToSymbol[Number(i) - 1]] = counts[i];
+        }
+
+        return {symbol: countsSymbol, atomic: counts};
     }
 };
 

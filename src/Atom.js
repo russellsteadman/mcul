@@ -30,6 +30,22 @@ const Atom = class {
         }
     }
 
+    set charge (charge) {
+        if (typeof charge !== 'number') throw new Error('Charge must be an integer');
+        this.s.a.c = charge || 0;
+
+        if (this.s.p && this.s.id) {
+            this.s.p.s.a[this.s.id] = {
+                ...this.s.p.s.a[this.s.id],
+                c: charge,
+            };
+        }
+    }
+
+    get charge () {
+        return this.s.a.c || 0;
+    }
+
     get symbol () {
         return AtomicToSymbol[this.s.a.el - 1] || '';
     }

@@ -61,7 +61,7 @@ test("Can create methane", () => {
   `);
 });
 
-test("Can branch a carbon chain", () => {
+test("Can branch a carbon chain manually using sub", () => {
   let chain = new Molecule();
 
   let carbons = [];
@@ -73,28 +73,89 @@ test("Can branch a carbon chain", () => {
     chain.bond(carbons[i], carbons[i + 1]);
   }
 
-  let methyl = chain.createAtom("C");
-  chain.bond(methyl, carbons[3]);
+  chain.add("methyl", carbons[3]);
 
-  let amine = new Molecule();
-  let h1 = amine.createAtom("H");
-  let h2 = amine.createAtom("H");
-  let n = amine.createAtom("N");
-
-  amine.bond(n, h1).bond(n, h2);
-
-  let amine2 = amine.clone();
-
-  amine.in(chain);
-
-  chain.bond(chain.getAtomsByElement("N")[0], methyl);
+  chain.hydrogenateCarbons();
 
   expect(chain.getBranchPaths(carbons[7])).toMatchInlineSnapshot(`
 Array [
-  "7-8-9-a-b-c-d-e",
-  "7-6-5-4-3-f-i-h",
-  "7-6-5-4-3-f-i-g",
-  "7-6-5-4-3-2-1-0",
+  "7-y",
+  "7-x",
+  "7-8-10",
+  "7-8-z",
+  "7-8-9-12",
+  "7-8-9-11",
+  "7-8-9-a-14",
+  "7-8-9-a-13",
+  "7-8-9-a-b-16",
+  "7-8-9-a-b-15",
+  "7-8-9-a-b-c-18",
+  "7-8-9-a-b-c-17",
+  "7-8-9-a-b-c-d-1a",
+  "7-8-9-a-b-c-d-19",
+  "7-8-9-a-b-c-d-e-1d",
+  "7-8-9-a-b-c-d-e-1c",
+  "7-8-9-a-b-c-d-e-1b",
+  "7-6-w",
+  "7-6-v",
+  "7-6-5-u",
+  "7-6-5-t",
+  "7-6-5-4-s",
+  "7-6-5-4-r",
+  "7-6-5-4-3-q",
+  "7-6-5-4-3-f-i",
+  "7-6-5-4-3-f-h",
+  "7-6-5-4-3-f-g",
+  "7-6-5-4-3-2-p",
+  "7-6-5-4-3-2-o",
+  "7-6-5-4-3-2-1-n",
+  "7-6-5-4-3-2-1-m",
+  "7-6-5-4-3-2-1-0-l",
+  "7-6-5-4-3-2-1-0-k",
+  "7-6-5-4-3-2-1-0-j",
 ]
+`);
+});
+
+test("Can provide elemental compositions", () => {
+  let butane = new Molecule();
+  butane.chainCarbons(4);
+  butane.hydrogenateCarbons();
+
+  expect(butane.atomCounts).toMatchInlineSnapshot(`
+    Object {
+      "atomic": Object {
+        "1": 10,
+        "6": 4,
+      },
+      "symbol": Object {
+        "C": 4,
+        "H": 10,
+      },
+    }
+  `);
+  expect(butane.moleFraction).toMatchInlineSnapshot(`
+Object {
+  "atomic": Object {
+    "1": 0.7143,
+    "6": 0.2857,
+  },
+  "symbol": Object {
+    "C": 0.2857,
+    "H": 0.7143,
+  },
+}
+`);
+  expect(butane.massFraction).toMatchInlineSnapshot(`
+Object {
+  "atomic": Object {
+    "1": 0.1734,
+    "6": 0.8266,
+  },
+  "symbol": Object {
+    "C": 0.8266,
+    "H": 0.1734,
+  },
+}
 `);
 });

@@ -158,6 +158,21 @@ const Atom_Atom = (_temp = class Atom {
     }
   }
 
+  set charge(charge) {
+    if (typeof charge !== 'number') throw new Error('Charge must be an integer');
+    this.s.a.c = charge || 0;
+
+    if (this.s.p && this.s.id) {
+      this.s.p.s.a[this.s.id] = _objectSpread({}, this.s.p.s.a[this.s.id], {
+        c: charge
+      });
+    }
+  }
+
+  get charge() {
+    return this.s.a.c || 0;
+  }
+
   get symbol() {
     return atomicToSymbol[this.s.a.el - 1] || '';
   }
@@ -177,6 +192,110 @@ const Atom_Atom = (_temp = class Atom {
 
 }, _temp);
 /* harmony default export */ var src_Atom = (Atom_Atom);
+// CONCATENATED MODULE: ../src/maps/alkyl.js
+/* harmony default export */ var alkyl = (['methyl', 'ethyl', 'propyl', 'butyl', 'pentyl', 'hexyl', 'heptyl', 'octyl', 'nonyl', 'decyl', 'undecyl', 'dodecyl']);
+// CONCATENATED MODULE: ../src/ext/Add.js
+
+const Isoalkyl = alkyl.slice(2).map(alkyl => `iso${alkyl}`);
+const Halide = ['fluoro', 'chloro', 'bromo', 'iodo'];
+
+const Add = function (name, carbon, carbonTwo) {
+  if (alkyl.indexOf(name) !== -1) {
+    // Add an alkyl group
+    let plus = this.chainCarbons(alkyl.indexOf(name) + 1);
+    this.bond(plus[0], carbon);
+
+    for (let i in plus) this.hydrogenateCarbon(plus[i]);
+  } else if (Isoalkyl.indexOf(name) !== -1) {
+    // Add an isoalkyl group
+    let plus = this.chainCarbons(alkyl.indexOf(name) + 1);
+    let carbons = this.createAtoms('C', 2);
+    this.bond(plus[plus.length - 1], carbons[0]).bond(plus[plus.length - 1], carbons[1]).bond(plus[0], carbon);
+
+    for (let i in plus) this.hydrogenateCarbon(plus[i]);
+
+    for (let i in carbons) this.hydrogenateCarbon(carbons[i]);
+  } else if (name === 's-butyl' || name === 'sec-butyl') {
+    // Add an s-butyl
+    let plus = this.chainCarbons(3);
+    let sub = this.createAtom('C');
+    this.bond(plus[1], sub).bond(plus[0], carbon);
+
+    for (let i in plus) this.hydrogenateCarbon(plus[i]);
+
+    this.hydrogenateCarbon(sub);
+  } else if (name === 't-butyl' || name === 'tert-butyl') {
+    // Add an t-butyl
+    let plus = this.chainCarbons(2);
+    let carbons = this.createAtoms('C', 2);
+    this.bond(plus[1], carbons[0]).bond(plus[1], carbons[1]).bond(plus[0], carbon);
+
+    for (let i in plus) this.hydrogenateCarbon(plus[i]);
+
+    for (let i in carbons) this.hydrogenateCarbon(carbons[i]);
+  } else if (name === 'benzene') {
+    // Add an benzene ring
+    let plus = this.chainCarbons(6, 1);
+
+    for (let i = 0; i < 6; i += 2) this.modifyBond(plus[i], plus[i + 1], {
+      count: 2
+    });
+
+    this.bond(plus[0], plus[5]).bond(plus[0], carbon);
+
+    for (let i in plus) this.hydrogenateCarbon(plus[i]);
+  } else if (name === 'amine') {
+    // Add an amine
+    let n = this.createAtom('N');
+    let h = this.createAtoms('H', 2);
+    this.bond(carbon, n).bond(n, h[0]).bond(n, h[1]);
+  } else if (Halide.indexOf(name) !== -1) {
+    // Add a halide
+    this.bond(this.createAtom(['F', 'Cl', 'Br', 'I'][Halide.indexOf(name)]), carbon);
+  } else if (name === 'hydroxyl') {
+    // Add an alcohol
+    let o = this.createAtom('O');
+    this.bond(o, this.createAtom('H')).bond(o, carbon);
+  } else if (name === 'carbonyl') {
+    // Add a ketone
+    let o = this.createAtom('O');
+    this.bond(o, carbon, {
+      count: 2
+    });
+  } else if (name === 'aldehyde') {
+    // Add a ketone
+    let o = this.createAtom('O');
+    this.bond(o, carbon, {
+      count: 2
+    });
+    if (this.getBondCount(carbon) < 4) this.bond(carbon, this.createAtom('H'));
+  } else if (name === 'carbonate') {
+    // Add a carbonate
+    if (!carbonTwo) throw new Error('Must provide a second R group for a carbonate');
+    let o = this.createAtoms('O', 3);
+    let c = this.createAtom('C');
+    this.bond(o[0], c, {
+      count: 2
+    }).bond(o[1], c).bond(o[2], c);
+    this.bond(carbon, o[1]).bond(carbonTwo, o[2]).bond(c, this.createAtom('H'));
+  } else if (name === 'carboxylate') {
+    let o = this.createAtoms('O', 2);
+    o[0].charge = -1;
+    this.bond(o[1], carbon, {
+      count: 2
+    }).bond(o[0], carbon);
+  } else if (name === 'carboxyl') {
+    let o = this.createAtoms('O', 2);
+    o[0].charge = -1;
+    this.bond(o[1], carbon, {
+      count: 2
+    }).bond(o[0], carbon);
+  } else {
+    throw new Error(`Unable to resolve functional group "${name}"`);
+  }
+};
+
+/* harmony default export */ var ext_Add = (Add);
 // CONCATENATED MODULE: ../src/Molecule.js
 var Molecule_temp;
 
@@ -185,6 +304,7 @@ function Molecule_ownKeys(object, enumerableOnly) { var keys = Object.keys(objec
 function Molecule_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { Molecule_ownKeys(Object(source), true).forEach(function (key) { Molecule_defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { Molecule_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function Molecule_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 
@@ -214,47 +334,25 @@ const Molecule_Molecule = (Molecule_temp = class Molecule {
       return atoms;
     });
 
-    Molecule_defineProperty(this, "contains", component => {
-      if (component) {
-        if (component.type === 'molecule') {
-          let index = this.s.i;
-
-          for (let i in component.s.a) {
-            let id = (parseInt(i, 36) + index).toString(36);
-            this.s.i += 1;
-            this.s.a[id] = component.s.a[i];
-          }
-
-          for (let i in component.s.b) {
-            if (!component.s.b) continue;
-            let [idOne, idTwo] = i.split('-');
-            idOne = (parseInt(idOne, 36) + index).toString(36);
-            idTwo = (parseInt(idTwo, 36) + index).toString(36);
-            this.s.b[`${idOne}-${idTwo}`] = component.s.b[i];
-            this.s.b[`${idTwo}-${idOne}`] = null;
-          }
-
-          delete component.s;
-          component.s = this.s;
-          return this;
-        } else if (component.type === 'atom') {
-          return component.in(this);
-        } else {
-          throw new Error('Must pass an molecule or atom');
-        }
+    Molecule_defineProperty(this, "contains", atom => {
+      if (atom && atom.type === 'atom') {
+        return atom.in(this);
       } else {
-        throw new Error('Must pass a component');
+        throw new Error('Must pass an atom');
       }
     });
 
-    Molecule_defineProperty(this, "in", molecule => {
-      if (!molecule || molecule.type !== 'molecule') throw new Error('Must pass in a Molecule instance');
-      return molecule.contains(this);
-    });
-
     Molecule_defineProperty(this, "getAtomById", id => {
+      if (id && id.type === 'atom') return id;
       let atom = new src_Atom(null, this, id);
       atom.s.a = this.s.a[id] || {};
+      return atom;
+    });
+
+    Molecule_defineProperty(this, "getAtomId", atom => {
+      if (typeof atom === 'string') return atom;
+      atom = atom && atom.s && atom.s.id;
+      if (typeof atom !== 'string') throw new Error('Not an atom');
       return atom;
     });
 
@@ -264,30 +362,40 @@ const Molecule_Molecule = (Molecule_temp = class Molecule {
 
       for (let id in this.s.a) {
         if (this.s.a[id].el !== el) continue;
-        let atom = new src_Atom(null, this, id);
-        atom.s.a = this.s.a[id] || {};
-        atoms.push(atom);
+        atoms.push(this.getAtomById(id));
       }
 
       return atoms;
     });
 
     Molecule_defineProperty(this, "getBondedAtoms", atom => {
-      let id = atom && atom.s && atom.s.id;
+      let id = this.getAtomId(atom);
       let atoms = [];
 
       for (let i in this.s.b) {
         if (i.split('-')[0] !== id) continue;
-        let atom = new src_Atom(null, this, i.split('-')[1]);
-        atom.s.a = this.s.a[i.split('-')[1]] || {};
-        atoms.push(atom);
+        atoms.push(this.getAtomById(i.split('-')[1]));
       }
 
       return atoms;
     });
 
+    Molecule_defineProperty(this, "getBondCount", atom => {
+      let id = this.getAtomId(atom);
+      let count = 0;
+      let bond;
+
+      for (let i in this.s.b) {
+        bond = this.s.b[i];
+        if (!bond) bond = this.s.b[`${i.split('-')[1]}-${i.split('-')[0]}`];
+        if (i.split('-')[0] === id) count += bond.count || 1;
+      }
+
+      return count;
+    });
+
     Molecule_defineProperty(this, "getBranchPaths", (atom, priorId, originalId) => {
-      let id = atom && atom.s && atom.s.id || atom;
+      let id = this.getAtomId(atom);
       let linearPrefix = priorId ? `-${id}` : id;
       let branchLines = [];
       let pathEnd = true; // Checking for originalId prevents looping for cyclic structures
@@ -316,8 +424,8 @@ const Molecule_Molecule = (Molecule_temp = class Molecule {
     });
 
     Molecule_defineProperty(this, "bond", (atomOne, atomTwo, options) => {
-      let idOne = atomOne && atomOne.s && atomOne.s.id;
-      let idTwo = atomTwo && atomTwo.s && atomTwo.s.id;
+      let idOne = this.getAtomId(atomOne);
+      let idTwo = this.getAtomId(atomTwo);
       this.s.b[`${idOne}-${idTwo}`] = Molecule_objectSpread({
         type: 'c',
         // One of: c (Covalent), i (Ionic), m (Metallic)
@@ -328,8 +436,8 @@ const Molecule_Molecule = (Molecule_temp = class Molecule {
     });
 
     Molecule_defineProperty(this, "modifyBond", (atomOne, atomTwo, changes) => {
-      let idOne = atomOne && atomOne.s && atomOne.s.id;
-      let idTwo = atomTwo && atomTwo.s && atomTwo.s.id;
+      let idOne = this.getAtomId(atomOne);
+      let idTwo = this.getAtomId(atomTwo);
       let bond = this.s.b[`${idOne}-${idTwo}`];
 
       if (typeof bond === 'object' && bond) {
@@ -342,8 +450,8 @@ const Molecule_Molecule = (Molecule_temp = class Molecule {
     });
 
     Molecule_defineProperty(this, "getBond", (atomOne, atomTwo) => {
-      let idOne = atomOne && atomOne.s && atomOne.s.id;
-      let idTwo = atomTwo && atomTwo.s && atomTwo.s.id;
+      let idOne = this.getAtomId(atomOne);
+      let idTwo = this.getAtomId(atomTwo);
       let bond = this.s.b[`${idOne}-${idTwo}`];
 
       if (typeof bond === 'object' && bond) {
@@ -370,6 +478,52 @@ const Molecule_Molecule = (Molecule_temp = class Molecule {
       } catch (e) {
         throw new Error('Unable to parse packed data');
       }
+
+      return this;
+    });
+
+    Molecule_defineProperty(this, "chainCarbons", (count, bondCount) => {
+      if (!bondCount) bondCount = 1;
+
+      if (bondCount < 1 && bondCount > 3 || bondCount === 3 && count > 2) {
+        throw new Error('Chain must have a possible number of bonds');
+      }
+
+      let carbons = this.createAtoms('C', count);
+
+      for (let i = 1; i < count; i++) {
+        this.bond(carbons[i - 1], carbons[i], {
+          count: bondCount
+        });
+      }
+
+      return carbons;
+    });
+
+    Molecule_defineProperty(this, "hydrogenateCarbon", carbon => {
+      let bondCount = this.getBondCount(carbon);
+
+      for (let o = bondCount; o < 4; o++) {
+        let hydrogen = this.createAtom('H');
+        this.bond(carbon, hydrogen);
+      }
+
+      return this;
+    });
+
+    Molecule_defineProperty(this, "hydrogenateCarbons", () => {
+      let carbons = this.getAtomsByElement('C');
+
+      for (let i in carbons) {
+        let bondCount = this.getBondCount(carbons[i]);
+
+        for (let o = bondCount; o < 4; o++) {
+          let hydrogen = this.createAtom('H');
+          this.bond(carbons[i], hydrogen);
+        }
+      }
+
+      return this;
     });
 
     Molecule_defineProperty(this, "clone", () => {
@@ -387,6 +541,7 @@ const Molecule_Molecule = (Molecule_temp = class Molecule {
 
     };
     this.type = 'molecule';
+    this.add = ext_Add.bind(this);
   } // Create a new atom
 
 
@@ -398,6 +553,69 @@ const Molecule_Molecule = (Molecule_temp = class Molecule {
     }
 
     return Math.round(mass * 1000) / 1000;
+  }
+
+  get atomCounts() {
+    let counts = {};
+    let countsSymbol = {};
+
+    for (let i in this.s.a) {
+      counts[this.s.a[i].el] = counts[this.s.a[i].el] || 0;
+      counts[this.s.a[i].el]++;
+    }
+
+    for (let i in counts) countsSymbol[atomicToSymbol[Number(i) - 1]] = counts[i];
+
+    return {
+      symbol: countsSymbol,
+      atomic: counts
+    };
+  }
+
+  get moleFraction() {
+    let counts = {};
+    let countsSymbol = {};
+    let total = 0;
+
+    for (let i in this.s.a) {
+      counts[this.s.a[i].el] = counts[this.s.a[i].el] || 0;
+      counts[this.s.a[i].el]++;
+      total++;
+    }
+
+    for (let i in counts) {
+      counts[i] /= total;
+      counts[i] = Math.round(counts[i] * 10000) / 10000;
+      countsSymbol[atomicToSymbol[Number(i) - 1]] = counts[i];
+    }
+
+    return {
+      symbol: countsSymbol,
+      atomic: counts
+    };
+  }
+
+  get massFraction() {
+    let counts = {};
+    let countsSymbol = {};
+    let total = 0;
+
+    for (let i in this.s.a) {
+      counts[this.s.a[i].el] = counts[this.s.a[i].el] || 0;
+      counts[this.s.a[i].el] += atomicToAMU[this.s.a[i].el - 1];
+      total += atomicToAMU[this.s.a[i].el - 1];
+    }
+
+    for (let i in counts) {
+      counts[i] /= total;
+      counts[i] = Math.round(counts[i] * 10000) / 10000;
+      countsSymbol[atomicToSymbol[Number(i) - 1]] = counts[i];
+    }
+
+    return {
+      symbol: countsSymbol,
+      atomic: counts
+    };
   }
 
 }, Molecule_temp);
