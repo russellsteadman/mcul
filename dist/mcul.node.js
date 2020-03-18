@@ -279,17 +279,25 @@ const Add = function (name, carbon, carbonTwo) {
     }).bond(o[1], c).bond(o[2], c);
     this.bond(carbon, o[1]).bond(carbonTwo, o[2]).bond(c, this.createAtom('H'));
   } else if (name === 'carboxylate') {
+    // Add a carboxylate ion
     let o = this.createAtoms('O', 2);
     o[0].charge = -1;
     this.bond(o[1], carbon, {
       count: 2
     }).bond(o[0], carbon);
   } else if (name === 'carboxyl') {
+    // Add a carboxyl group
     let o = this.createAtoms('O', 2);
-    o[0].charge = -1;
     this.bond(o[1], carbon, {
       count: 2
-    }).bond(o[0], carbon);
+    }).bond(o[0], carbon).bond(o[0], this.createAtom('H'));
+  } else if (name === 'carboalkoxy') {
+    // Add an ester group
+    if (!carbonTwo) throw new Error('Must provide a second R group for an ester');
+    let o = this.createAtoms('O', 2);
+    this.bond(o[1], carbon, {
+      count: 2
+    }).bond(o[0], carbon).bond(o[0], this.createAtom('H'));
   } else {
     throw new Error(`Unable to resolve functional group "${name}"`);
   }

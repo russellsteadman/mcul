@@ -10,4 +10,4 @@ aux_links:
     "Github":
       - "https://github.com/teamtofu/mcul"
 author_email: steadman.21@osu.edu
-footer_content: "MCUL v0.1.0-alpha3. Copyright &copy; 2020 Russell Steadman. Distributed under an MIT license."
+footer_content: "MCUL v{{version}}. Copyright &copy; {{year}} Russell Steadman. Distributed under an MIT license."

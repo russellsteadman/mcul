@@ -63,9 +63,7 @@ Accepts a string element symbol (e.g. `'H'`) as well as a numeric count (e.g. `4
 
 ##### Molecule.bond(atomOne, atomTwo, options)
 
-Accepts two atoms
-
-#### Atom
+Accepts two atoms and bond options to create a bond.
 
 ### All Documentation
 
