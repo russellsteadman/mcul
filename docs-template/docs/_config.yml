@@ -2,7 +2,7 @@ title: MCUL
 description: Simplify the logic behind organizing atoms into molecules
 show_downloads: true
 ga_tracking: UA-78556187-11
-theme: just-the-docs
+remote_theme: pmarsceill/just-the-docs
 author: "Russell Steadman"
 aux_links:
     "NPM":
