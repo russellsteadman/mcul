@@ -1,3 +1,8 @@
+---
+redirect_from:
+  - /doc/
+---
+
 <!-- WARNING: Edit this file in /docs-template -->
 
 # MCUL
