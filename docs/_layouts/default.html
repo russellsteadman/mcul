@@ -20,6 +20,8 @@
             for (var i in examples) {
                 window.RunKit.createNotebook({
                     element: examples[i],
+                    gutterStyle: 'inside',
+                    nodeVersion: '12.x.x',
                     source: examples[i].firstChild.textContent,
                     onLoad: () => examples[i].firstChild.remove()
                 });

@@ -40,7 +40,7 @@ After the changes, run `yarn build` or `npm run build` to build the code. Use `d
 
 ## Example
 
-<div data-example>const { Molecule, Atom } = require('mcul');
+<div data-example><p class="d-none">const { Molecule, Atom } = require('mcul');
 
 // Generate new Molecule instance
 let ethanol = new Molecule();
@@ -69,7 +69,7 @@ console.log(ethanol.mass);
 console.log(ethanol.getBranchPaths(carbon[0]));
 
 // Get all bonded atoms
-console.log(ethanol.getBondedAtoms(carbon[1]).map((atom) => atom.name));</div>
+console.log(ethanol.getBondedAtoms(carbon[1]).map((atom) => atom.name));</p></div>
 
 ### Molecule Methods
 
