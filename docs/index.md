@@ -1,8 +1,3 @@
----
-redirect_from:
-  - /doc/
----
-
 <!-- WARNING: Edit this file in /docs-template -->
 
 # MCUL
@@ -40,7 +35,7 @@ After the changes, run `yarn build` or `npm run build` to build the code. Use `d
 
 ## Example
 
-<div data-example><p class="d-none">const { Molecule, Atom } = require('mcul');
+<div data-example><p class="d-none my-5">const { Molecule, Atom } = require('mcul');
 
 // Generate new Molecule instance
 let ethanol = new Molecule();
@@ -70,25 +65,6 @@ console.log(ethanol.getBranchPaths(carbon[0]));
 
 // Get all bonded atoms
 console.log(ethanol.getBondedAtoms(carbon[1]).map((atom) => atom.name));</p></div>
-
-### Molecule Methods
-
-| Name                         | Returns          |
-| ---------------------------- | ---------------- |
-| createFromText(text, format) | MoleculeInstance |
-| create()                     | MoleculeInstance |
-| setDefaultFormat(format)     | None             |
-| addParser(parser, format)    | None             |
-
-### MoleculeInstance Methods
-
-| Name                            | Returns                                |
-| ------------------------------- | -------------------------------------- |
-| serialize()                     | serializedObject                       |
-| unserialize(serializedObject)   | None                                   |
-| findById(id)                    | Element, Subgroup, or MoleculeInstance |
-| createElement(element, options) | Element                                |
-| addParser(parser, format)       | None                                   |
 
 ## Data Sources
 
