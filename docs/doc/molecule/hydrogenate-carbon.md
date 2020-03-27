@@ -4,27 +4,27 @@
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/doc/">Documentation</a></li>
     <li class="breadcrumb-item"><a href="/doc/molecule/">Molecule</a></li>
-    <li class="breadcrumb-item active" aria-current="page">createAtom</li>
+    <li class="breadcrumb-item active" aria-current="page">hydrogenateCarbon</li>
   </ol>
 </nav>
 
-# Molecule.createAtom
+# Molecule.hydrogenateCarbon
 
 ## Arguments
 
 ```js
 let molecule = new Molecule();
 
-molecule.createAtom(elementSymbol /* type: String */);
+molecule.hydrogenateCarbon(carbonAtom /* type: Atom */);
 ```
 
-- `elementSymbol` - The symbol corresponding to the element of the atom
+- `carbonAtom` - The carbon atom to hydrogenate
 
 ## Returns
 
-**Type:** `Atom` Instance
+**Type:** `Molecule`
 
-The function returns the generated `Atom` instance linked to the molecule.
+The function returns the parent `Molecule`.
 
 ## Interactive Example
 
@@ -32,6 +32,7 @@ The function returns the generated `Atom` instance linked to the molecule.
 
 let molecule = new Molecule();
 
-let hydrogen = molecule.createAtom('H');
+let carbons = molecule.chainCarbons('C', 2);
+molecule.hydrogenateCarbon(carbons[0]);
 
-console.log(hydrogen);</p></div>
+console.log(molecule.getBondCount(carbons[0]), molecule.getBondCount(carbons[1]));</p></div>

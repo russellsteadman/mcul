@@ -1,3 +1,5 @@
+<!-- WARNING: Edit this file in /docs-template -->
+
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/doc/">Documentation</a></li>
@@ -17,24 +19,24 @@ let molecule = new Molecule();
 
 ## Methods
 
-- [`Molecule.createAtom`](/doc/molecule/create-atom/)
-- [`Molecule.createAtoms`](/doc/molecule/create-atoms/)
-- [`Molecule.getAtomId`](/doc/molecule/get-atom-id/)
-- [`Molecule.getAtomById`](/doc/molecule/get-atom-by-id/)
-- [`Molecule.getAtomsByElement`](/doc/molecule/get-atoms-by-element/)
-- [`Molecule.contains`](/doc/molecule/contains/)
-- [`Molecule.getAtomsByElement`](/doc/molecule/get-atoms-by-element/)
-- [`Molecule.bond`](/doc/molecule/bond/)
-- [`Molecule.modifyBond`](/doc/molecule/modify-bond/)
-- [`Molecule.getBond`](/doc/molecule/get-bond/)
-- [`Molecule.getBondedAtoms`](/doc/molecule/get-bonded-atoms/)
-- [`Molecule.getBondCount`](/doc/molecule/get-bond-count/)
-- [`Molecule.getBranchPaths`](/doc/molecule/get-branch-paths/)
-- [`Molecule.pack`](/doc/molecule/pack/)
-- [`Molecule.unpack`](/doc/molecule/unpack/)
-- [`Molecule.chainCarbons`](/doc/molecule/chain-carbons/)
-- [`Molecule.hydrogenateCarbon`](/doc/molecule/hydrogenate-carbon/)
-- [`Molecule.hydrogenateCarbons`](/doc/molecule/hydrogenate-carbons/)
+- [`Molecule.createAtom`](/doc/molecule/create-atom)
+- [`Molecule.createAtoms`](/doc/molecule/create-atoms)
+- [`Molecule.getAtomId`](/doc/molecule/get-atom-id)
+- [`Molecule.getAtomById`](/doc/molecule/get-atom-by-id)
+- [`Molecule.getAtomsByElement`](/doc/molecule/get-atoms-by-element)
+- [`Molecule.contains`](/doc/molecule/contains)
+- [`Molecule.getAtomsByElement`](/doc/molecule/get-atoms-by-element)
+- [`Molecule.bond`](/doc/molecule/bond)
+- [`Molecule.modifyBond`](/doc/molecule/modify-bond)
+- [`Molecule.getBond`](/doc/molecule/get-bond)
+- [`Molecule.getBondedAtoms`](/doc/molecule/get-bonded-atoms)
+- [`Molecule.getBondCount`](/doc/molecule/get-bond-count)
+- [`Molecule.getBranchPaths`](/doc/molecule/get-branch-paths)
+- [`Molecule.pack`](/doc/molecule/pack)
+- [`Molecule.unpack`](/doc/molecule/unpack)
+- [`Molecule.chainCarbons`](/doc/molecule/chain-carbons)
+- [`Molecule.hydrogenateCarbon`](/doc/molecule/hydrogenate-carbon)
+- [`Molecule.hydrogenateCarbons`](/doc/molecule/hydrogenate-carbons)
 
 ## Properties
 

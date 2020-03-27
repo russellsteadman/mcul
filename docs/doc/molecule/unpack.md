@@ -4,27 +4,25 @@
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/doc/">Documentation</a></li>
     <li class="breadcrumb-item"><a href="/doc/molecule/">Molecule</a></li>
-    <li class="breadcrumb-item active" aria-current="page">createAtom</li>
+    <li class="breadcrumb-item active" aria-current="page">unpack</li>
   </ol>
 </nav>
 
-# Molecule.createAtom
+# Molecule.unpack
 
 ## Arguments
 
 ```js
 let molecule = new Molecule();
 
-molecule.createAtom(elementSymbol /* type: String */);
+molecule.unpack(packedData /* type: String */);
 ```
 
-- `elementSymbol` - The symbol corresponding to the element of the atom
+- `packedData` - Packed data produced by [`Molecule.pack`](/doc/molecule/pack)
 
 ## Returns
 
-**Type:** `Atom` Instance
-
-The function returns the generated `Atom` instance linked to the molecule.
+**Type:** None
 
 ## Interactive Example
 
@@ -32,6 +30,4 @@ The function returns the generated `Atom` instance linked to the molecule.
 
 let molecule = new Molecule();
 
-let hydrogen = molecule.createAtom('H');
-
-console.log(hydrogen);</p></div>
+console.log(molecule.unpack(molecule.pack()));</p></div>

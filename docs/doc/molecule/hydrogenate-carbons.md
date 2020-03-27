@@ -4,27 +4,23 @@
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/doc/">Documentation</a></li>
     <li class="breadcrumb-item"><a href="/doc/molecule/">Molecule</a></li>
-    <li class="breadcrumb-item active" aria-current="page">createAtom</li>
+    <li class="breadcrumb-item active" aria-current="page">hydrogenateCarbons</li>
   </ol>
 </nav>
 
-# Molecule.createAtom
-
-## Arguments
+# Molecule.hydrogenateCarbons
 
 ```js
 let molecule = new Molecule();
 
-molecule.createAtom(elementSymbol /* type: String */);
+molecule.hydrogenateCarbons();
 ```
-
-- `elementSymbol` - The symbol corresponding to the element of the atom
 
 ## Returns
 
-**Type:** `Atom` Instance
+**Type:** `Molecule`
 
-The function returns the generated `Atom` instance linked to the molecule.
+The function returns the parent `Molecule`.
 
 ## Interactive Example
 
@@ -32,6 +28,7 @@ The function returns the generated `Atom` instance linked to the molecule.
 
 let molecule = new Molecule();
 
-let hydrogen = molecule.createAtom('H');
+molecule.chainCarbons('C', 5);
+molecule.hydrogenateCarbons();
 
-console.log(hydrogen);</p></div>
+console.log(molecule.mass, 'This is pentane\'s mass');</p></div>

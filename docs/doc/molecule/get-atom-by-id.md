@@ -1,3 +1,5 @@
+<!-- WARNING: Edit this file in /docs-template -->
+
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/doc/">Documentation</a></li>
@@ -20,13 +22,13 @@ molecule.getAtomById(id /* type: String */);
 
 ## Returns
 
-**Type:** `String`
+**Type:** `Atom` Instance
 
-The function returns an a string identifier for the atom in the molecule.
+The function returns an instance of the corresponding `Atom`.
 
 ## Interactive Example
 
-<div data-example><p class="d-none my-5">import { Molecule } from 'mcul';
+<div data-example><p class="d-none my-5">const { Molecule } = require('mcul');
 
 let molecule = new Molecule();
 let hydrogen = molecule.createAtom('H');

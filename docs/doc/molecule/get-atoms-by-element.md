@@ -4,34 +4,35 @@
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/doc/">Documentation</a></li>
     <li class="breadcrumb-item"><a href="/doc/molecule/">Molecule</a></li>
-    <li class="breadcrumb-item active" aria-current="page">createAtom</li>
+    <li class="breadcrumb-item active" aria-current="page">getAtomsByElement</li>
   </ol>
 </nav>
 
-# Molecule.createAtom
+# Molecule.getAtomsByElement
 
 ## Arguments
 
 ```js
 let molecule = new Molecule();
 
-molecule.createAtom(elementSymbol /* type: String */);
+molecule.getAtomsByElement(elementSymbol /* type: String */);
 ```
 
-- `elementSymbol` - The symbol corresponding to the element of the atom
+- `elementSymbol` - The symbol for the corresponding element
 
 ## Returns
 
-**Type:** `Atom` Instance
+**Type:** `Array`[`Atom` Instance]
 
-The function returns the generated `Atom` instance linked to the molecule.
+The function returns an array of atom instances of the selected element.
 
 ## Interactive Example
 
 <div data-example><p class="d-none my-5">const { Molecule } = require('mcul');
 
 let molecule = new Molecule();
+molecule.createAtoms('H', 4);
 
-let hydrogen = molecule.createAtom('H');
+let hydrogens = molecule.getAtomsByElement('H');
 
-console.log(hydrogen);</p></div>
+console.log(hydrogens);</p></div>

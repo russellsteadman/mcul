@@ -455,6 +455,8 @@ const Molecule_Molecule = (Molecule_temp = class Molecule {
       } else {
         throw new Error('Unable to modify bond, does not exist');
       }
+
+      return this;
     });
 
     Molecule_defineProperty(this, "getBond", (atomOne, atomTwo) => {

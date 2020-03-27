@@ -4,27 +4,27 @@
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/doc/">Documentation</a></li>
     <li class="breadcrumb-item"><a href="/doc/molecule/">Molecule</a></li>
-    <li class="breadcrumb-item active" aria-current="page">createAtom</li>
+    <li class="breadcrumb-item active" aria-current="page">getBondedAtoms</li>
   </ol>
 </nav>
 
-# Molecule.createAtom
+# Molecule.getBondedAtoms
 
 ## Arguments
 
 ```js
 let molecule = new Molecule();
 
-molecule.createAtom(elementSymbol /* type: String */);
+molecule.getBondedAtoms(atom /* type: Atom */);
 ```
 
-- `elementSymbol` - The symbol corresponding to the element of the atom
+- `atom` - The atom involved in bonding
 
 ## Returns
 
-**Type:** `Atom` Instance
+**Type:** `Array`[`Atom` instance]
 
-The function returns the generated `Atom` instance linked to the molecule.
+The function returns an array of bonded atoms.
 
 ## Interactive Example
 
@@ -32,6 +32,7 @@ The function returns the generated `Atom` instance linked to the molecule.
 
 let molecule = new Molecule();
 
-let hydrogen = molecule.createAtom('H');
+let c = molecule.createAtom('C');
+molecule.hydrogenateCarbons();
 
-console.log(hydrogen);</p></div>
+console.log(molecule.getBondedAtoms(c));</p></div>

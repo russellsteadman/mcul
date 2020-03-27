@@ -4,27 +4,28 @@
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/doc/">Documentation</a></li>
     <li class="breadcrumb-item"><a href="/doc/molecule/">Molecule</a></li>
-    <li class="breadcrumb-item active" aria-current="page">createAtom</li>
+    <li class="breadcrumb-item active" aria-current="page">chainCarbons</li>
   </ol>
 </nav>
 
-# Molecule.createAtom
+# Molecule.chainCarbons
 
 ## Arguments
 
 ```js
 let molecule = new Molecule();
 
-molecule.createAtom(elementSymbol /* type: String */);
+molecule.chainCarbons(carbonCount /* type: Number */, bondOptions);
 ```
 
-- `elementSymbol` - The symbol corresponding to the element of the atom
+- `carbonCount` - The number of carbons to chain
+- `bondOptions` - [Bond options](/doc/bonding/options) for the carbon-carbon bonds
 
 ## Returns
 
-**Type:** `Atom` Instance
+**Type:** `Array`[`Atom` instance]
 
-The function returns the generated `Atom` instance linked to the molecule.
+The function returns an array of bonded carbons.
 
 ## Interactive Example
 
@@ -32,6 +33,6 @@ The function returns the generated `Atom` instance linked to the molecule.
 
 let molecule = new Molecule();
 
-let hydrogen = molecule.createAtom('H');
+let carbons = molecule.chainCarbons('C', 5);
 
-console.log(hydrogen);</p></div>
+console.log(carbons);</p></div>

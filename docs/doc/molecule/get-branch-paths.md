@@ -4,27 +4,27 @@
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/doc/">Documentation</a></li>
     <li class="breadcrumb-item"><a href="/doc/molecule/">Molecule</a></li>
-    <li class="breadcrumb-item active" aria-current="page">createAtom</li>
+    <li class="breadcrumb-item active" aria-current="page">getBranchPaths</li>
   </ol>
 </nav>
 
-# Molecule.createAtom
+# Molecule.getBranchPaths
 
 ## Arguments
 
 ```js
 let molecule = new Molecule();
 
-molecule.createAtom(elementSymbol /* type: String */);
+molecule.getBranchPaths(atom /* type: Atom */);
 ```
 
-- `elementSymbol` - The symbol corresponding to the element of the atom
+- `atom` - The atom involved in bonding
 
 ## Returns
 
-**Type:** `Atom` Instance
+**Type:** `Array`[`String`]
 
-The function returns the generated `Atom` instance linked to the molecule.
+The function returns an array of strings in the format `'id1-id2-id3'` that trace all available paths from a atom.
 
 ## Interactive Example
 
@@ -32,6 +32,7 @@ The function returns the generated `Atom` instance linked to the molecule.
 
 let molecule = new Molecule();
 
-let hydrogen = molecule.createAtom('H');
+let carbons = molecule.chainCarbons(3);
+molecule.hydrogenateCarbons();
 
-console.log(hydrogen);</p></div>
+console.log(molecule.getBranchPaths(carbons[0]));</p></div>
