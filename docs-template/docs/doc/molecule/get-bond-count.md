@@ -4,35 +4,35 @@
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/doc/">Documentation</a></li>
     <li class="breadcrumb-item"><a href="/doc/molecule/">Molecule</a></li>
-    <li class="breadcrumb-item active" aria-current="page">getAtomId</li>
+    <li class="breadcrumb-item active" aria-current="page">getBondCount</li>
   </ol>
 </nav>
 
-# Molecule.getAtomId
+# Molecule.getBondCount
 
 ## Arguments
 
 ```js
 let molecule = new Molecule();
 
-molecule.getAtomId(atom /* type: Atom */);
+molecule.getBondCount(atom /* type: Atom */);
 ```
 
-- `atom`
+- `atom` - The atom involved in bonding
 
 ## Returns
 
-**Type:** `String`
+**Type:** `Number`
 
-The function returns a string identifier for the atom in the molecule.
+The function returns the number of bonds, counting double bonds as two, and triple bonds as three.
 
 ## Interactive Example
 
 <div data-example><p class="d-none my-5">const { Molecule } = require('mcul');
 
 let molecule = new Molecule();
-let hydrogen = molecule.createAtom('H');
 
-let id = molecule.getAtomId(hydrogen);
+let c = molecule.createAtom('C');
+molecule.hydrogenateCarbons();
 
-console.log(id);</p></div>
+console.log(molecule.getBondCount(c));</p></div>

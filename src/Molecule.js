@@ -178,6 +178,8 @@ const Molecule = class {
         } else {
             throw new Error('Unable to modify bond, does not exist');
         }
+
+        return this;
     };
 
     // Get a bond

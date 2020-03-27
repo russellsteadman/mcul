@@ -1,3 +1,5 @@
+{{notice}}
+
 # Documentation
 
 ## Overview
@@ -17,5 +19,5 @@ const { Molecule, Atom } = window.mcul;
 
 ## Classes
 
-- [Molecule](/docs/molecule/)
-- [Atom](/docs/atom/)
+- [Molecule](/doc/molecule/)
+- [Atom](/doc/atom/)
